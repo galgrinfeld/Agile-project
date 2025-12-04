@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from .database import Base
 
 # --------------------
@@ -11,9 +12,10 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     faculty = Column(String, nullable=True)
     year = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    enrollments = relationship("Enrollment", back_populates="student")
-    ratings = relationship("Rating", back_populates="student")
+    enrollments = relationship("Enrollment", back_populates="student", cascade="all, delete-orphan")
+    ratings = relationship("Rating", back_populates="student", cascade="all, delete-orphan")
 
 
 # --------------------
@@ -23,13 +25,14 @@ class Course(Base):
     __tablename__ = "courses"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
     difficulty = Column(Integer, nullable=True)   # 1–5
     workload = Column(Integer, nullable=True)     # hours per week
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    enrollments = relationship("Enrollment", back_populates="course")
-    ratings = relationship("Rating", back_populates="course")
+    enrollments = relationship("Enrollment", back_populates="course", cascade="all, delete-orphan")
+    ratings = relationship("Rating", back_populates="course", cascade="all, delete-orphan")
 
 
 # --------------------
@@ -39,8 +42,9 @@ class Enrollment(Base):
     __tablename__ = "enrollment"
 
     id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey("students.id"))
-    course_id = Column(Integer, ForeignKey("courses.id"))
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+    enrolled_at = Column(DateTime, default=datetime.utcnow)
 
     student = relationship("Student", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
@@ -53,10 +57,11 @@ class Rating(Base):
     __tablename__ = "ratings"
 
     id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey("students.id"))
-    course_id = Column(Integer, ForeignKey("courses.id"))
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     score = Column(Float, nullable=False)  # 1–5
     comment = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     student = relationship("Student", back_populates="ratings")
     course = relationship("Course", back_populates="ratings")
