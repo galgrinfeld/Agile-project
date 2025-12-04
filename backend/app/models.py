@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -10,11 +11,12 @@ class Student(Base):
     __tablename__ = "students"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
     faculty = Column(String, nullable=True)
     year = Column(Integer, nullable=True)
+    courses_taken = Column(ARRAY(Integer), default=list)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    enrollments = relationship("Enrollment", back_populates="student", cascade="all, delete-orphan")
     ratings = relationship("Rating", back_populates="student", cascade="all, delete-orphan")
 
 
@@ -31,23 +33,7 @@ class Course(Base):
     workload = Column(Integer, nullable=True)     # hours per week
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    enrollments = relationship("Enrollment", back_populates="course", cascade="all, delete-orphan")
     ratings = relationship("Rating", back_populates="course", cascade="all, delete-orphan")
-
-
-# --------------------
-# Enrollment Table
-# --------------------
-class Enrollment(Base):
-    __tablename__ = "enrollment"
-
-    id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
-    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
-    enrolled_at = Column(DateTime, default=datetime.utcnow)
-
-    student = relationship("Student", back_populates="enrollments")
-    course = relationship("Course", back_populates="enrollments")
 
 
 # --------------------

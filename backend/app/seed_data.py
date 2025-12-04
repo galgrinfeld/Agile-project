@@ -1,38 +1,34 @@
 """
 Seed script to populate the database with sample data.
-Run this script to initialize the database with courses, students, enrollments, and ratings.
+Run this script to initialize the database with courses, students, and ratings.
 """
 
 from .database import SessionLocal, engine
 from . import models
+from sqlalchemy import text
 
 
 def seed_database():
     """Populate the database with sample data."""
+    db = SessionLocal()
+    
+    # Drop all tables with CASCADE to handle dependencies
+    try:
+        db.execute(text("DROP TABLE IF EXISTS ratings CASCADE"))
+        db.execute(text("DROP TABLE IF EXISTS enrollment CASCADE"))
+        db.execute(text("DROP TABLE IF EXISTS students CASCADE"))
+        db.execute(text("DROP TABLE IF EXISTS courses CASCADE"))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Warning during DROP: {e}")
+    
     # Create all tables
     models.Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
     
-    # Check if data already exists
-    if db.query(models.Student).first():
-        print("Database already seeded. Skipping...")
-        db.close()
-        return
-    
-    # Create sample students
-    students = [
-        models.Student(faculty="Computer Science", year=1),
-        models.Student(faculty="Computer Science", year=2),
-        models.Student(faculty="Computer Science", year=3),
-        models.Student(faculty="Engineering", year=1),
-        models.Student(faculty="Engineering", year=2),
-        models.Student(faculty="Business", year=1),
-    ]
-    db.add_all(students)
-    db.commit()
-    
-    # Create sample courses
+    # Create sample courses first
     courses = [
         models.Course(
             name="Introduction to Python",
@@ -74,19 +70,16 @@ def seed_database():
     db.add_all(courses)
     db.commit()
     
-    # Create sample enrollments
-    enrollments = [
-        models.Enrollment(student_id=1, course_id=1),
-        models.Enrollment(student_id=1, course_id=2),
-        models.Enrollment(student_id=2, course_id=1),
-        models.Enrollment(student_id=2, course_id=3),
-        models.Enrollment(student_id=3, course_id=2),
-        models.Enrollment(student_id=3, course_id=4),
-        models.Enrollment(student_id=4, course_id=1),
-        models.Enrollment(student_id=5, course_id=5),
-        models.Enrollment(student_id=6, course_id=6),
+    # Create sample students with courses_taken arrays
+    students = [
+        models.Student(name="Alice Johnson", faculty="Computer Science", year=1, courses_taken=[1, 2]),
+        models.Student(name="Bob Smith", faculty="Computer Science", year=2, courses_taken=[1, 3]),
+        models.Student(name="Charlie Brown", faculty="Computer Science", year=3, courses_taken=[2, 4]),
+        models.Student(name="Diana Prince", faculty="Engineering", year=1, courses_taken=[1]),
+        models.Student(name="Eve Wilson", faculty="Engineering", year=2, courses_taken=[5]),
+        models.Student(name="Frank Miller", faculty="Business", year=1, courses_taken=[6]),
     ]
-    db.add_all(enrollments)
+    db.add_all(students)
     db.commit()
     
     # Create sample ratings
@@ -110,3 +103,5 @@ def seed_database():
 
 if __name__ == "__main__":
     seed_database()
+
+

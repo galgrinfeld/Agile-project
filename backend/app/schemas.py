@@ -6,8 +6,10 @@ from datetime import datetime
 # ==================== STUDENT SCHEMAS ====================
 class StudentBase(BaseModel):
     """Base schema for Student."""
+    name: str
     faculty: Optional[str] = None
     year: Optional[int] = None
+    courses_taken: List[int] = []
 
 
 class StudentCreate(StudentBase):
@@ -50,22 +52,12 @@ class CourseResponse(CourseBase):
 # ==================== ENROLLMENT SCHEMAS ====================
 class EnrollmentBase(BaseModel):
     """Base schema for Enrollment."""
-    student_id: int
-    course_id: int
+    courses_taken: List[int]
 
 
-class EnrollmentCreate(EnrollmentBase):
-    """Schema for creating an Enrollment."""
+class EnrollmentUpdate(EnrollmentBase):
+    """Schema for updating student courses."""
     pass
-
-
-class EnrollmentResponse(EnrollmentBase):
-    """Schema for Enrollment response."""
-    id: int
-    enrolled_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ==================== RATING SCHEMAS ====================

@@ -47,6 +47,19 @@ def update_student(student_id: int, student: schemas.StudentCreate, db: Session 
     return db_student
 
 
+@router.put("/{student_id}/courses", response_model=schemas.StudentResponse)
+def update_student_courses(student_id: int, enrollment: schemas.EnrollmentUpdate, db: Session = Depends(get_db)):
+    """Update the list of courses a student has taken."""
+    db_student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not db_student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    db_student.courses_taken = enrollment.courses_taken
+    db.commit()
+    db.refresh(db_student)
+    return db_student
+
+
 @router.delete("/{student_id}")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     """Delete a student."""
@@ -57,3 +70,4 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     db.delete(db_student)
     db.commit()
     return {"message": "Student deleted successfully"}
+

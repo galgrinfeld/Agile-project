@@ -2,9 +2,10 @@ from fastapi import FastAPI
 from .routes import students, courses, ratings
 from .database import Base, engine
 from . import models
+from .seed_data import seed_database
 
-# Create all tables on startup
-Base.metadata.create_all(bind=engine)
+# Seed the database on startup (which also handles table recreation)
+seed_database()
 
 app = FastAPI()
 
