@@ -7,13 +7,56 @@ const API_URL = 'http://localhost:8000/auth';
 // Create AuthContext
 const AuthContext = createContext(null);
 
+/**
+ * Stores the token in local storage.
+ * @param {string} token - The JWT token.
+ */
+export const setToken = (token) => {
+    localStorage.setItem('userToken', token);
+};
+
+/**
+ * Retrieves the token from local storage.
+ * @returns {string | null} The JWT token or null.
+ */
+export const getToken = () => {
+    return localStorage.getItem('userToken');
+};
+
+/**
+ * Removes the token from local storage.
+ */
+export const removeToken = () => {
+    localStorage.removeItem('userToken');
+};
+
+/**
+ * Parses a JWT token and returns the decoded payload.
+ * @param {string} token - The JWT token.
+ * @returns {object} The decoded payload.
+ */
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Failed to parse JWT:', error);
+        return null;
+    }
+}
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [token, setTokenState] = useState(getToken());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Decode token and set currentUser on mount
+    // Decode token and set currentUser whenever token changes
     if (token) {
       try {
         const decodedToken = parseJwt(token);
@@ -27,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
-  }, []);
+  }, [token]);
 
   const login = async (username, password) => {
     const formData = new URLSearchParams();
@@ -78,7 +121,14 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.warn('useAuth called outside AuthProvider - returning default context');
+    return {
+      currentUser: null,
+      token: null,
+      loading: false,
+      login: async () => {},
+      logout: () => {},
+    };
   }
   return context;
 };
@@ -143,46 +193,3 @@ export const register = async ({ name, password, faculty, year }) => {
 
     return response.json();
 };
-
-/**
- * Stores the token in local storage.
- * @param {string} token - The JWT token.
- */
-export const setToken = (token) => {
-    localStorage.setItem('userToken', token);
-};
-
-/**
- * Retrieves the token from local storage.
- * @returns {string | null} The JWT token or null.
- */
-export const getToken = () => {
-    return localStorage.getItem('userToken');
-};
-
-/**
- * Removes the token from local storage.
- */
-export const removeToken = () => {
-    localStorage.removeItem('userToken');
-};
-
-/**
- * Parses a JWT token and returns the decoded payload.
- * @param {string} token - The JWT token.
- * @returns {object} The decoded payload.
- */
-function parseJwt(token) {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (error) {
-        console.error('Failed to parse JWT:', error);
-        return null;
-    }
-}

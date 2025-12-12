@@ -93,27 +93,23 @@ const PublicReviewPage = () => (
 
 // --- Main App Component ---
 function AppContent() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentRoute, setCurrentRoute] = useState('/');
-    const { currentUser, logout } = useAuth();
-
-    useEffect(() => {
-        if (getToken() && currentUser) {
-            setIsAuthenticated(true);
-        }
-    }, [currentUser]);
+    const { currentUser, logout, loading } = useAuth();
+    const isAuthenticated = !!currentUser;
 
     const handleAuthSuccess = () => {
-        setIsAuthenticated(true);
         setCurrentRoute('/dashboard');
     };
 
     const handleLogout = () => {
         logout();
-        removeToken();
-        setIsAuthenticated(false);
         setCurrentRoute('/');
     };
+
+    // Don't render while auth is loading
+    if (loading) {
+        return <div style={{ textAlign: 'center', padding: '50px' }}>Loading...</div>;
+    }
 
     // Route: /reviews - Public review form (no login required)
     if (currentRoute === '/reviews') {

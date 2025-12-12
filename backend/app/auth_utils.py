@@ -5,7 +5,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer
 from . import models
 from .crud import get_student_by_name # Assuming get_student_by_name is implemented in crud.py
 from .database import get_db
@@ -70,7 +70,7 @@ security = HTTPBearer()
 
 
 def get_current_student(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> models.Student:
     """

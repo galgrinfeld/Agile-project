@@ -19,6 +19,12 @@ import { useAuth } from '../../services/authService';
 const CourseReviewForm = () => {
   const { currentUser, token } = useAuth();
   
+  // Debug logging
+  React.useEffect(() => {
+    console.log('CourseReviewForm - currentUser:', currentUser);
+    console.log('CourseReviewForm - token:', token ? 'present' : 'missing');
+  }, [currentUser, token]);
+  
   const [formData, setFormData] = useState({
     course_id: '',
     languages_learned: [],
@@ -100,7 +106,7 @@ const CourseReviewForm = () => {
         useful_learning_rating: formData.useful_learning_rating,
       };
 
-      const response = await fetch('http://localhost:8000/reviews', {
+      const response = await fetch('http://localhost:8000/reviews/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

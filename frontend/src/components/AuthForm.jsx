@@ -1,6 +1,7 @@
-// frontend/src/components/AuthForm.jsx
+// frontend/src/AuthForm.jsx
 
 import React, { useState } from 'react';
+import { loginUser, register, setToken } from '../services/authService';
 
 const AuthForm = ({ onAuthSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -11,9 +12,6 @@ const AuthForm = ({ onAuthSuccess }) => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Dynamic imports for the service functions
-    const { login, register, setToken } = require('../services/authService');
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -22,7 +20,7 @@ const AuthForm = ({ onAuthSuccess }) => {
         try {
             if (isLogin) {
                 // LOGIN attempt
-                const token = await login(name, password);
+                const token = await loginUser(name, password);
                 setToken(token);
                 onAuthSuccess(); // Notify parent component
             } else {
@@ -91,8 +89,8 @@ const AuthForm = ({ onAuthSuccess }) => {
                     {loading ? 'Processing...' : (isLogin ? 'Log In' : 'Register')}
                 </button>
             </form>
-            console.log(error);
-            {error && <p style={styles.error}>Error: {error.message}</p>}
+
+            {error && <p style={styles.error}>Error: {error}</p>}
 
             <button onClick={toggleMode} style={styles.linkButton}>
                 {isLogin
