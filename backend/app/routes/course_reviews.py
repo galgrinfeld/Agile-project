@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import CourseReview, Student, Course
 from ..schemas import CourseReviewCreate, CourseReviewResponse
+from ..auth_utils import get_current_student
 
 
 # ==================== SCORE CALCULATION ====================
@@ -31,17 +32,15 @@ router = APIRouter(prefix="/reviews", tags=["Course Reviews"])
 @router.post("/", response_model=CourseReviewResponse)
 def create_course_review(
     review_data: CourseReviewCreate,
+    current_student: Student = Depends(get_current_student),
     db: Session = Depends(get_db)
 ):
     """
     Create a new course review.
+    Student ID is automatically set from the authenticated user.
     Calculates final_score using the weighted formula.
     """
-    # Verify student and course exist
-    student = db.query(Student).filter(Student.id == review_data.student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
+    # Verify course exists
     course = db.query(Course).filter(Course.id == review_data.course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -53,9 +52,9 @@ def create_course_review(
         useful=review_data.useful_learning_rating
     )
 
-    # Create review record
+    # Create review record with student_id from authentication context
     new_review = CourseReview(
-        student_id=review_data.student_id,
+        student_id=current_student.id,
         course_id=review_data.course_id,
         languages_learned=review_data.languages_learned,
         course_outputs=review_data.course_outputs,

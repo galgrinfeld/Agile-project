@@ -1,6 +1,87 @@
 // frontend/src/services/authService.js
 
+import { useContext, createContext, useState, useEffect } from 'react';
+
 const API_URL = 'http://localhost:8000/auth';
+
+// Create AuthContext
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [token, setTokenState] = useState(getToken());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Decode token and set currentUser on mount
+    if (token) {
+      try {
+        const decodedToken = parseJwt(token);
+        if (decodedToken && decodedToken.student_id) {
+          setCurrentUser({ id: decodedToken.student_id, name: decodedToken.sub });
+        }
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+        removeToken();
+        setTokenState(null);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const login = async (username, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('password', password);
+
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Login failed.');
+    }
+
+    const data = await response.json();
+    setToken(data.access_token);
+    setTokenState(data.access_token);
+    
+    // Decode and set currentUser
+    const decodedToken = parseJwt(data.access_token);
+    setCurrentUser({ id: decodedToken.student_id, name: decodedToken.sub });
+    
+    return data.access_token;
+  };
+
+  const logout = () => {
+    removeToken();
+    setTokenState(null);
+    setCurrentUser(null);
+  };
+
+  const value = {
+    currentUser,
+    token,
+    loading,
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 /**
  * Handles user login.
@@ -8,7 +89,7 @@ const API_URL = 'http://localhost:8000/auth';
  * @param {string} password - The user's password.
  * @returns {Promise<string>} The JWT access token.
  */
-export const login = async (username, password) => {
+export const loginUser = async (username, password) => {
     // FastAPI's /login expects form data, not JSON
     const formData = new URLSearchParams();
     formData.append('username', username);
@@ -29,6 +110,7 @@ export const login = async (username, password) => {
     }
 
     const data = await response.json();
+    setToken(data.access_token);
     return data.access_token;
 };
 
@@ -84,3 +166,23 @@ export const getToken = () => {
 export const removeToken = () => {
     localStorage.removeItem('userToken');
 };
+
+/**
+ * Parses a JWT token and returns the decoded payload.
+ * @param {string} token - The JWT token.
+ * @returns {object} The decoded payload.
+ */
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Failed to parse JWT:', error);
+        return null;
+    }
+}

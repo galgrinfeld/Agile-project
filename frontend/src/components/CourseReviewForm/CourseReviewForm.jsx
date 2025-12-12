@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Container,
   Card,
@@ -14,10 +14,12 @@ import {
 } from '@mui/material';
 import LanguagesInput from './LanguagesInput';
 import CourseOutputsInput from './CourseOutputsInput';
+import { useAuth } from '../../services/authService';
 
 const CourseReviewForm = () => {
+  const { currentUser, token } = useAuth();
+  
   const [formData, setFormData] = useState({
-    student_id: '',
     course_id: '',
     languages_learned: [],
     course_outputs: [],
@@ -60,8 +62,13 @@ const CourseReviewForm = () => {
     e.preventDefault();
 
     // Validation
-    if (!formData.student_id || !formData.course_id) {
-      setErrorMessage('Student ID and Course ID are required');
+    if (!currentUser) {
+      setErrorMessage('You must be logged in to submit a review');
+      return;
+    }
+
+    if (!formData.course_id) {
+      setErrorMessage('Course ID is required');
       return;
     }
 
@@ -80,8 +87,8 @@ const CourseReviewForm = () => {
     setFinalScore(null);
 
     try {
+      // Construct payload WITHOUT student_id - it's added by the server from auth context
       const payload = {
-        student_id: parseInt(formData.student_id),
         course_id: parseInt(formData.course_id),
         languages_learned: formData.languages_learned.join(', ') || null,
         course_outputs: formData.course_outputs.join(', ') || null,
@@ -97,6 +104,7 @@ const CourseReviewForm = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -112,10 +120,9 @@ const CourseReviewForm = () => {
         `✓ Review submitted successfully! Final Score: ${result.final_score}/10`
       );
 
-      // Reset form
+      // Reset form but keep course_id if user wants to submit another review for same course
       setFormData({
-        student_id: '',
-        course_id: '',
+        course_id: formData.course_id,
         languages_learned: [],
         course_outputs: [],
         industry_relevance_text: '',
@@ -197,7 +204,7 @@ const CourseReviewForm = () => {
             )}
 
             <Box component="form" onSubmit={handleSubmit}>
-              {/* ===== SECTION 1: Student & Course Info ===== */}
+              {/* ===== SECTION 1: Course Info & User Authentication ===== */}
               <Typography
                 variant="h6"
                 sx={{
@@ -220,56 +227,20 @@ const CourseReviewForm = () => {
                     backgroundColor: '#00D9A3',
                   }}
                 />
-                Course & Student Information
+                Course Information
               </Typography>
 
+              {currentUser && (
+                <Alert 
+                  severity="info" 
+                  sx={{ mb: 3, borderRadius: 2, fontSize: '0.95rem' }}
+                >
+                  Logged in as: <strong>{currentUser.name}</strong>
+                </Alert>
+              )}
+
               <Grid container spacing={2.5} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Student ID"
-                    name="student_id"
-                    type="number"
-                    value={formData.student_id}
-                    onChange={handleTextChange}
-                    required
-                    variant="outlined"
-                    size="medium"
-                    inputProps={{
-                      style: { MozAppearance: 'textfield' },
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        '&:hover fieldset': {
-                          borderColor: '#00D9A3',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00D9A3',
-                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '0.95rem',
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#00D9A3',
-                      },
-                      '& input[type=number]': {
-                        MozAppearance: 'textfield',
-                      },
-                      '& input[type=number]::-webkit-outer-spin-button': {
-                        WebkitAppearance: 'none',
-                        margin: 0,
-                      },
-                      '& input[type=number]::-webkit-inner-spin-button': {
-                        WebkitAppearance: 'none',
-                        margin: 0,
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Course ID"

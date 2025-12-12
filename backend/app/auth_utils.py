@@ -4,8 +4,11 @@ from typing import Optional
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthCredentials
 from . import models
 from .crud import get_student_by_name # Assuming get_student_by_name is implemented in crud.py
+from .database import get_db
 
 # --- Configuration ---
 # Generate a secure secret key and set the algorithm
@@ -49,3 +52,55 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def decode_token(token: str) -> Optional[dict]:
+    """
+    Decodes a JWT token and returns the payload.
+    Returns None if token is invalid or expired.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+
+security = HTTPBearer()
+
+
+def get_current_student(
+    credentials: HTTPAuthCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> models.Student:
+    """
+    Dependency that extracts and validates the JWT token from the Authorization header.
+    Returns the authenticated Student object.
+    Raises HTTPException if token is invalid or student not found.
+    """
+    token = credentials.credentials
+    payload = decode_token(token)
+    
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    student_id = payload.get("student_id")
+    if student_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing student_id",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if student is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found",
+        )
+    
+    return student

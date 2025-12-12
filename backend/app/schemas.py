@@ -76,20 +76,20 @@ class EnrollmentUpdate(EnrollmentBase):
 # ==================== RATING SCHEMAS ====================
 class RatingBase(BaseModel):
     """Base schema for Rating."""
-    student_id: int
     course_id: int
     score: float
     comment: Optional[str] = None
 
 
 class RatingCreate(RatingBase):
-    """Schema for creating a Rating."""
+    """Schema for creating a Rating. Student ID is derived from authentication."""
     pass
 
 
 class RatingResponse(RatingBase):
     """Schema for Rating response."""
     id: int
+    student_id: int
     created_at: datetime
 
     class Config:
@@ -99,7 +99,6 @@ class RatingResponse(RatingBase):
 # ==================== COURSE REVIEW SCHEMAS ====================
 class CourseReviewBase(BaseModel):
     """Base schema for Course Review."""
-    student_id: int
     course_id: int
     languages_learned: Optional[str] = None
     course_outputs: Optional[str] = None
@@ -113,13 +112,14 @@ class CourseReviewBase(BaseModel):
 
 
 class CourseReviewCreate(CourseReviewBase):
-    """Schema for creating a Course Review."""
+    """Schema for creating a Course Review. Student ID is derived from authentication."""
     pass
 
 
 class CourseReviewResponse(CourseReviewBase):
     """Schema for Course Review response."""
     id: int
+    student_id: int
     final_score: float
     created_at: datetime
 

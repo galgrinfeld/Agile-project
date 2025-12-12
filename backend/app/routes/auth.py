@@ -46,6 +46,7 @@ def login_for_access_token(
 ):
     """
     Login endpoint. Authenticates user and returns a JWT access token.
+    Token includes both username and student_id for later use in protected endpoints.
     """
     user = authenticate_user(db, form_data.username, form_data.password)
     
@@ -56,10 +57,10 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Create the JWT token
+    # Create the JWT token with both username and student_id
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.name}, expires_delta=access_token_expires
+        data={"sub": user.name, "student_id": user.id}, expires_delta=access_token_expires
     )
     
     return {"access_token": access_token, "token_type": "bearer"}

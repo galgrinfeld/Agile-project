@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthForm from './components/AuthForm';
 import { CourseReviewForm } from './components/CourseReviewForm';
-import { getToken, removeToken } from './services/authService';
+import { getToken, removeToken, AuthProvider, useAuth } from './services/authService';
 
 // --- Dashboard for authenticated users ---
 const Dashboard = ({ onLogout }) => {
@@ -92,15 +92,16 @@ const PublicReviewPage = () => (
 );
 
 // --- Main App Component ---
-function App() {
+function AppContent() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentRoute, setCurrentRoute] = useState('/');
+    const { currentUser, logout } = useAuth();
 
     useEffect(() => {
-        if (getToken()) {
+        if (getToken() && currentUser) {
             setIsAuthenticated(true);
         }
-    }, []);
+    }, [currentUser]);
 
     const handleAuthSuccess = () => {
         setIsAuthenticated(true);
@@ -108,6 +109,7 @@ function App() {
     };
 
     const handleLogout = () => {
+        logout();
         removeToken();
         setIsAuthenticated(false);
         setCurrentRoute('/');
@@ -136,6 +138,14 @@ function App() {
                 </div>
             )}
         </div>
+    );
+}
+
+function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
     );
 }
 
