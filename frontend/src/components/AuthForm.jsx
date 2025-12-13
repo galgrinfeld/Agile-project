@@ -1,9 +1,11 @@
 // frontend/src/AuthForm.jsx
 
 import React, { useState } from 'react';
-import { loginUser, register, setToken } from '../services/authService';
+import { useAuth } from '../services/authService';
+import { register } from '../services/authService';
 
 const AuthForm = ({ onAuthSuccess }) => {
+    const { login } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
@@ -19,9 +21,8 @@ const AuthForm = ({ onAuthSuccess }) => {
 
         try {
             if (isLogin) {
-                // LOGIN attempt
-                const token = await loginUser(name, password);
-                setToken(token);
+                // LOGIN attempt - use the login function from AuthProvider context
+                await login(name, password);
                 onAuthSuccess(); // Notify parent component
             } else {
                 // REGISTER attempt
