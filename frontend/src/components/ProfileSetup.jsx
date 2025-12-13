@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../services/authService';
 import { getToken } from '../services/authService';
 import CourseSelection from './CourseSelection';
+import CareerGoals from './CareerGoals';
 
 const API_URL = 'http://localhost:8000';
 
@@ -94,6 +95,7 @@ const ProfileSetup = ({ onComplete, onBack }) => {
     const [department, setDepartment] = useState('Computer Science');
     const [year, setYear] = useState(null);
     const [selectedCourses, setSelectedCourses] = useState([]);
+    const [selectedGoals, setSelectedGoals] = useState([]);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -113,29 +115,27 @@ const ProfileSetup = ({ onComplete, onBack }) => {
 
         setLoading(true);
         try {
-            // Save basic info
+            // Save basic info (skip API call in dev mode if not authenticated)
             const authToken = token || getToken();
-            if (!authToken || !currentUser) {
-                throw new Error('Not authenticated');
-            }
+            if (authToken && currentUser) {
+                const response = await fetch(`${API_URL}/students/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        name: currentUser.name,
+                        faculty: department,
+                        year: year,
+                        courses_taken: selectedCourses
+                    }),
+                });
 
-            const response = await fetch(`${API_URL}/students/${currentUser.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-                body: JSON.stringify({
-                    name: currentUser.name,
-                    faculty: department,
-                    year: year,
-                    courses_taken: selectedCourses
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to save profile');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save profile');
+                }
             }
 
             // Move to next step
@@ -151,32 +151,29 @@ const ProfileSetup = ({ onComplete, onBack }) => {
     const handleStep2Next = async () => {
         setLoading(true);
         try {
-            // Save selected courses
+            // Save selected courses (skip API call in dev mode if not authenticated)
             const authToken = token || getToken();
-            if (!authToken || !currentUser) {
-                throw new Error('Not authenticated');
+            if (authToken && currentUser) {
+                const response = await fetch(`${API_URL}/students/${currentUser.id}/courses`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        courses_taken: selectedCourses
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save courses');
+                }
             }
 
-            const response = await fetch(`${API_URL}/students/${currentUser.id}/courses`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-                body: JSON.stringify({
-                    courses_taken: selectedCourses
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to save courses');
-            }
-
-            // Complete profile setup
-            if (onComplete) {
-                onComplete({ department, year, courses: selectedCourses });
-            }
+            // Move to next step
+            setCurrentStep(3);
+            setErrors({});
         } catch (err) {
             setErrors({ submit: err.message || 'Failed to save courses' });
         } finally {
@@ -184,6 +181,44 @@ const ProfileSetup = ({ onComplete, onBack }) => {
         }
     };
 
+    const handleStep3Next = async () => {
+        setLoading(true);
+        try {
+            // Save career goals
+            const authToken = token || getToken();
+            if (authToken && currentUser) {
+                const response = await fetch(`${API_URL}/students/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        name: currentUser.name,
+                        faculty: department,
+                        year: year,
+                        courses_taken: selectedCourses,
+                        career_goals: selectedGoals
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save career goals');
+                }
+            }
+
+            // Complete profile setup
+            if (onComplete) {
+                onComplete({ department, year, courses: selectedCourses, goals: selectedGoals });
+            }
+        } catch (err) {
+            setErrors({ submit: err.message || 'Failed to save career goals' });
+        } finally {
+            setLoading(false);
+        }
+    };
+    
     const handleBack = () => {
         if (currentStep === 1) {
             if (onBack) {
@@ -218,13 +253,13 @@ const ProfileSetup = ({ onComplete, onBack }) => {
                         </div>
                         <div style={styles.progressLine}></div>
                         <div style={styles.progressStep}>
-                            <div style={styles.progressIcon}>3</div>
-                            <div style={styles.progressLabel}>Step 3</div>
+                            <div style={styles.progressIcon}>2</div>
+                            <div style={styles.progressLabel}>Courses</div>
                         </div>
                         <div style={styles.progressLine}></div>
                         <div style={styles.progressStep}>
-                            <div style={styles.progressIcon}>4</div>
-                            <div style={styles.progressLabel}>Step 4</div>
+                            <div style={styles.progressIcon}>3</div>
+                            <div style={styles.progressLabel}>Career Goals</div>
                         </div>
                     </div>
                     <BasicInfoStep
@@ -244,6 +279,15 @@ const ProfileSetup = ({ onComplete, onBack }) => {
                     selectedCourses={selectedCourses}
                     onCoursesChange={setSelectedCourses}
                     onNext={handleStep2Next}
+                    onBack={handleBack}
+                />
+            )}
+
+            {currentStep === 3 && (
+                <CareerGoals
+                    selectedGoals={selectedGoals}
+                    onGoalsChange={setSelectedGoals}
+                    onNext={handleStep3Next}
                     onBack={handleBack}
                 />
             )}

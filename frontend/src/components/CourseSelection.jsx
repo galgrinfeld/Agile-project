@@ -98,12 +98,7 @@ const CourseSelection = ({ selectedCourses, onCoursesChange, onNext, onBack }) =
                 <div style={styles.progressLine}></div>
                 <div style={styles.progressStep}>
                     <div style={styles.progressIcon}>3</div>
-                    <div style={styles.progressLabel}>Step 3</div>
-                </div>
-                <div style={styles.progressLine}></div>
-                <div style={styles.progressStep}>
-                    <div style={styles.progressIcon}>4</div>
-                    <div style={styles.progressLabel}>Step 4</div>
+                    <div style={styles.progressLabel}>Career Goals</div>
                 </div>
             </div>
 
@@ -297,7 +292,7 @@ const styles = {
         width: '100%',
     },
     title: {
-        fontSize: '32px',
+        fontSize: '28px',
         fontWeight: 'bold',
         marginBottom: '8px',
         color: '#333',

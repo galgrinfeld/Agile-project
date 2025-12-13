@@ -1,10 +1,19 @@
 // frontend/src/AuthForm.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../services/authService';
 import { register } from '../services/authService';
 
 const AuthForm = ({ onAuthSuccess, onRegisterSuccess }) => {
+    // Prevent body scrolling when this component is mounted
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+        };
+    }, []);
     const { login } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [name, setName] = useState('');
@@ -144,10 +153,12 @@ const AuthForm = ({ onAuthSuccess, onRegisterSuccess }) => {
     };
 
     return (
-        <div style={styles.container}>
-            <h2>{isLogin ? 'Student Login' : 'Student Registration'}</h2>
-            
-            <form onSubmit={handleSubmit} style={styles.form}>
+        <div style={styles.pageContainer}>
+            <div style={styles.container}>
+                <h1 style={styles.title}>{isLogin ? 'Student Login' : 'Student Registration'}</h1>
+                {!isLogin && <p style={styles.subtitle}>Create your account to get started</p>}
+                
+                <form onSubmit={handleSubmit} style={styles.form}>
                 
                 <div>
                     <input
@@ -226,70 +237,114 @@ const AuthForm = ({ onAuthSuccess, onRegisterSuccess }) => {
                     </div>
                 )}
 
-                <button type="submit" disabled={loading} style={styles.button}>
-                    {loading ? 'Processing...' : (isLogin ? 'Log In' : 'Register')}
+                    <button type="submit" disabled={loading} style={styles.button}>
+                        {loading ? 'Processing...' : (isLogin ? 'Log In' : 'Register')}
+                    </button>
+                </form>
+
+                {error && (
+                    <div style={styles.errorContainer}>
+                        <p style={styles.error}>{error}</p>
+                    </div>
+                )}
+
+                <button onClick={toggleMode} style={styles.linkButton}>
+                    {isLogin
+                        ? 'New user? Register an account'
+                        : 'Already have an account? Log in here'}
                 </button>
-            </form>
-
-            {error && (
-                <div style={styles.errorContainer}>
-                    <p style={styles.error}>{error}</p>
-                </div>
-            )}
-
-            <button onClick={toggleMode} style={styles.linkButton}>
-                {isLogin
-                    ? 'New user? Register an account'
-                    : 'Already have an account? Log in here'}
-            </button>
+            </div>
         </div>
     );
 };
 
 // Simple inline styles for clarity
 const styles = {
+    pageContainer: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        backgroundColor: '#f5f5f5',
+        padding: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
+    },
     container: {
-        maxWidth: '400px',
-        margin: '50px auto',
+        backgroundColor: 'white',
+        borderRadius: '12px',
         padding: '20px',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        maxWidth: '500px',
+        width: '100%',
+        maxHeight: 'calc(100vh - 24px)',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        boxSizing: 'border-box',
+    },
+    title: {
+        fontSize: '22px',
+        fontWeight: 'bold',
+        marginBottom: '4px',
+        marginTop: 0,
+        color: '#333',
+    },
+    subtitle: {
+        fontSize: '14px',
+        color: '#666',
+        marginBottom: '12px',
+        marginTop: 0,
     },
     form: {
         display: 'flex',
         flexDirection: 'column',
+        gap: '12px',
+        margin: 0,
     },
     input: {
         width: '100%',
-        marginBottom: '10px',
         padding: '10px',
-        borderRadius: '4px',
+        borderRadius: '8px',
         border: '1px solid #ddd',
+        fontSize: '16px',
         boxSizing: 'border-box',
+        margin: 0,
     },
     button: {
-        padding: '10px',
-        backgroundColor: '#007bff',
+        padding: '10px 24px',
+        backgroundColor: '#7c3aed',
         color: 'white',
         border: 'none',
-        borderRadius: '4px',
+        borderRadius: '8px',
+        fontSize: '16px',
+        fontWeight: '600',
         cursor: 'pointer',
+        transition: 'all 0.2s',
+        marginTop: '4px',
     },
     linkButton: {
-        marginTop: '15px',
+        marginTop: '8px',
         background: 'none',
         border: 'none',
-        color: '#007bff',
+        color: '#7c3aed',
         cursor: 'pointer',
         textDecoration: 'underline',
+        fontSize: '14px',
+        padding: 0,
     },
     errorContainer: {
-        marginTop: '15px',
-        padding: '12px',
+        marginTop: '8px',
+        padding: '10px',
         backgroundColor: '#f8d7da',
         border: '1px solid #f5c6cb',
-        borderRadius: '4px',
+        borderRadius: '8px',
     },
     error: {
         color: '#721c24',
@@ -301,7 +356,7 @@ const styles = {
         color: '#dc3545',
         fontSize: '12px',
         marginTop: '4px',
-        marginBottom: '8px',
+        marginBottom: '2px',
         marginLeft: '4px',
     }
 };

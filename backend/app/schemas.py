@@ -18,6 +18,7 @@ class StudentBase(BaseModel):
     faculty: Optional[str] = None
     year: Optional[int] = None
     courses_taken: List[int] = []
+    career_goals: List[str] = []
 
 
 class StudentCreate(StudentBase):
