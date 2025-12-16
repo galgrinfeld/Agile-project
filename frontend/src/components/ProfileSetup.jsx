@@ -340,7 +340,7 @@ const styles = {
         width: '40px',
         height: '40px',
         borderRadius: '50%',
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
         display: 'flex',
         alignItems: 'center',
@@ -352,7 +352,7 @@ const styles = {
     },
     progressLabelActive: {
         fontSize: '12px',
-        color: '#7c3aed',
+        color: '#00D9A3',
         fontWeight: '600',
     },
     progressLine: {
@@ -427,9 +427,9 @@ const styles = {
         color: '#333',
     },
     yearButtonActive: {
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
-        border: '1px solid #7c3aed',
+        border: '1px solid #00D9A3',
     },
     fieldError: {
         color: '#dc3545',
@@ -471,7 +471,7 @@ const styles = {
         padding: '12px 24px',
         borderRadius: '8px',
         border: 'none',
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
         fontSize: '16px',
         fontWeight: '600',

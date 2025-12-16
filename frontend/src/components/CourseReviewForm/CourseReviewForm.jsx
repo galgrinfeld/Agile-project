@@ -163,7 +163,7 @@ const CourseReviewForm = () => {
           <Box
             sx={{
               backgroundColor: '#ffffff',
-              borderBottom: '3px solid #7c3aed',
+              borderBottom: '3px solid #00D9A3',
               p: 4,
               textAlign: 'center',
               mb: 4,
@@ -227,7 +227,7 @@ const CourseReviewForm = () => {
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#00D9A3',
                   }}
                 />
                 Course Information
@@ -261,18 +261,18 @@ const CourseReviewForm = () => {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
                         '&:hover fieldset': {
-                          borderColor: '#7c3aed',
+                          borderColor: '#00D9A3',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#7c3aed',
-                          boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
+                          borderColor: '#00D9A3',
+                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
                         },
                       },
                       '& .MuiInputBase-input': {
                         fontSize: '16px',
                       },
                       '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#7c3aed',
+                        color: '#00D9A3',
                       },
                       '& input[type=number]': {
                         MozAppearance: 'textfield',
@@ -310,7 +310,7 @@ const CourseReviewForm = () => {
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#00D9A3',
                   }}
                 />
                 Course Content
@@ -351,7 +351,7 @@ const CourseReviewForm = () => {
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#00D9A3',
                   }}
                 />
                 Your Feedback
@@ -374,18 +374,18 @@ const CourseReviewForm = () => {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
                         '&:hover fieldset': {
-                          borderColor: '#7c3aed',
+                          borderColor: '#00D9A3',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#7c3aed',
-                          boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
+                          borderColor: '#00D9A3',
+                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
                         },
                       },
                       '& .MuiInputBase-input': {
                         fontSize: '16px',
                       },
                       '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#7c3aed',
+                        color: '#00D9A3',
                       },
                     }}
                   />
@@ -407,18 +407,18 @@ const CourseReviewForm = () => {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
                         '&:hover fieldset': {
-                          borderColor: '#7c3aed',
+                          borderColor: '#00D9A3',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#7c3aed',
-                          boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
+                          borderColor: '#00D9A3',
+                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
                         },
                       },
                       '& .MuiInputBase-input': {
                         fontSize: '16px',
                       },
                       '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#7c3aed',
+                        color: '#00D9A3',
                       },
                     }}
                   />
@@ -440,18 +440,18 @@ const CourseReviewForm = () => {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '8px',
                         '&:hover fieldset': {
-                          borderColor: '#7c3aed',
+                          borderColor: '#00D9A3',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#7c3aed',
-                          boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
+                          borderColor: '#00D9A3',
+                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
                         },
                       },
                       '& .MuiInputBase-input': {
                         fontSize: '16px',
                       },
                       '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#7c3aed',
+                        color: '#00D9A3',
                       },
                     }}
                   />
@@ -478,7 +478,7 @@ const CourseReviewForm = () => {
                     width: 4,
                     height: 4,
                     borderRadius: '50%',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#00D9A3',
                   }}
                 />
                 Your Ratings
@@ -494,7 +494,7 @@ const CourseReviewForm = () => {
                 <Box
                   sx={{
                     backgroundColor: '#f8f8f8',
-                    border: '2px solid #7c3aed',
+                    border: '2px solid #00D9A3',
                     p: 4,
                     borderRadius: '8px',
                     width: '100%',
@@ -525,7 +525,7 @@ const CourseReviewForm = () => {
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',
-                              color: '#7c3aed',
+                              color: '#00D9A3',
                             },
                             justifyContent: 'center',
                           }}
@@ -556,7 +556,7 @@ const CourseReviewForm = () => {
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',
-                              color: '#7c3aed',
+                              color: '#00D9A3',
                             },
                             justifyContent: 'center',
                           }}
@@ -587,7 +587,7 @@ const CourseReviewForm = () => {
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',
-                              color: '#7c3aed',
+                              color: '#00D9A3',
                             },
                             justifyContent: 'center',
                           }}
@@ -613,7 +613,7 @@ const CourseReviewForm = () => {
                   size="large"
                   disabled={loading}
                   sx={{
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#00D9A3',
                     color: 'white',
                     width: 250,
                     fontWeight: 600,
@@ -623,7 +623,7 @@ const CourseReviewForm = () => {
                     transition: 'all 0.2s',
                     '&:hover': {
                       backgroundColor: '#6d28d9',
-                      boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
+                      boxShadow: '0 4px 12px rgba(0, 217, 163, 0.3)',
                     },
                     '&:disabled': {
                       backgroundColor: '#9ca3af',
@@ -655,7 +655,7 @@ const CourseReviewForm = () => {
                     variant="h6"
                     sx={{
                       fontWeight: 600,
-                      color: '#7c3aed',
+                      color: '#00D9A3',
                       fontSize: '18px',
                     }}
                   >

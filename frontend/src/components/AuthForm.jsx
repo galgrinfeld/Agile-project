@@ -321,7 +321,7 @@ const styles = {
     },
     button: {
         padding: '10px 24px',
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
         border: 'none',
         borderRadius: '8px',
@@ -335,7 +335,7 @@ const styles = {
         marginTop: '8px',
         background: 'none',
         border: 'none',
-        color: '#7c3aed',
+        color: '#00D9A3',
         cursor: 'pointer',
         textDecoration: 'underline',
         fontSize: '14px',

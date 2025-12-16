@@ -92,7 +92,7 @@ const CareerGoals = ({ selectedGoals, onGoalsChange, onNext, onBack }) => {
                                 style={{
                                     ...styles.jobRoleItem,
                                     backgroundColor: isSelected ? '#f3e8ff' : '#f5f5f5',
-                                    borderColor: isSelected ? '#7c3aed' : '#e0e0e0',
+                                    borderColor: isSelected ? '#00D9A3' : '#e0e0e0',
                                 }}
                                 onClick={() => handleToggleGoal(role.id)}
                             >
@@ -186,7 +186,7 @@ const styles = {
         width: '40px',
         height: '40px',
         borderRadius: '50%',
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
         display: 'flex',
         alignItems: 'center',
@@ -203,7 +203,7 @@ const styles = {
     },
     progressLabelActive: {
         fontSize: '12px',
-        color: '#7c3aed',
+        color: '#00D9A3',
         fontWeight: '600',
     },
     progressLine: {
@@ -298,7 +298,7 @@ const styles = {
         padding: '12px 24px',
         borderRadius: '8px',
         border: 'none',
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
         fontSize: '16px',
         fontWeight: '600',

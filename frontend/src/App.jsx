@@ -95,9 +95,9 @@ const dashboardStyles = {
         transition: 'all 0.2s',
     },
     navButtonActive: {
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#00D9A3',
         color: 'white',
-        border: '1px solid #7c3aed',
+        border: '1px solid #00D9A3',
         fontWeight: '600',
     },
     logoutButton: {
@@ -165,7 +165,7 @@ const publicPageStyles = {
         margin: '0 auto 20px',
     },
     link: {
-        color: '#7c3aed',
+        color: '#00D9A3',
         textDecoration: 'none',
         fontSize: '14px',
         fontWeight: '500',
