@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Card,
@@ -16,14 +16,30 @@ import LanguagesInput from './LanguagesInput';
 import CourseOutputsInput from './CourseOutputsInput';
 import { useAuth } from '../../services/authService';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+// Reusable TextField styling
+const textFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '&:hover fieldset': {
+      borderColor: '#00D9A3',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#00D9A3',
+      boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
+    },
+  },
+  '& .MuiInputBase-input': {
+    fontSize: '16px',
+  },
+  '& .MuiFormLabel-root.Mui-focused': {
+    color: '#00D9A3',
+  },
+};
+
 const CourseReviewForm = () => {
   const { currentUser, token } = useAuth();
-  
-  // Debug logging
-  React.useEffect(() => {
-    console.log('CourseReviewForm - currentUser:', currentUser);
-    console.log('CourseReviewForm - token:', token ? 'present' : 'missing');
-  }, [currentUser, token]);
   
   const [formData, setFormData] = useState({
     course_id: '',
@@ -41,6 +57,35 @@ const CourseReviewForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [finalScore, setFinalScore] = useState(null);
+
+  // Validate form data before submission
+  const validateFormData = () => {
+    if (!formData.course_id || parseInt(formData.course_id) <= 0) {
+      setErrorMessage('Please enter a valid Course ID');
+      return false;
+    }
+
+    if (formData.course_id.toString().length > 10) {
+      setErrorMessage('Course ID is invalid');
+      return false;
+    }
+
+    const maxTextLength = 500;
+    if (formData.industry_relevance_text.length > maxTextLength) {
+      setErrorMessage(`Industry Relevance feedback must be under ${maxTextLength} characters`);
+      return false;
+    }
+    if (formData.instructor_feedback.length > maxTextLength) {
+      setErrorMessage(`Instructor feedback must be under ${maxTextLength} characters`);
+      return false;
+    }
+    if (formData.useful_learning_text.length > maxTextLength) {
+      setErrorMessage(`Useful Learning feedback must be under ${maxTextLength} characters`);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleTextChange = (e) => {
     const { name, value } = e.target;
@@ -73,8 +118,7 @@ const CourseReviewForm = () => {
       return;
     }
 
-    if (!formData.course_id) {
-      setErrorMessage('Course ID is required');
+    if (!validateFormData()) {
       return;
     }
 
@@ -106,7 +150,7 @@ const CourseReviewForm = () => {
         useful_learning_rating: formData.useful_learning_rating,
       };
 
-      const response = await fetch('http://localhost:8000/reviews/', {
+      const response = await fetch(`${API_BASE_URL}/reviews/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,22 +302,7 @@ const CourseReviewForm = () => {
                       style: { MozAppearance: 'textfield' },
                     }}
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '&:hover fieldset': {
-                          borderColor: '#00D9A3',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00D9A3',
-                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '16px',
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#00D9A3',
-                      },
+                      ...textFieldSx,
                       '& input[type=number]': {
                         MozAppearance: 'textfield',
                       },
@@ -370,24 +399,7 @@ const CourseReviewForm = () => {
                     placeholder="How relevant is this course to the industry?"
                     variant="outlined"
                     size="medium"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '&:hover fieldset': {
-                          borderColor: '#00D9A3',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00D9A3',
-                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '16px',
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#00D9A3',
-                      },
-                    }}
+                    sx={textFieldSx}
                   />
                 </Grid>
 
@@ -403,24 +415,7 @@ const CourseReviewForm = () => {
                     placeholder="Your thoughts about the instructor and teaching quality"
                     variant="outlined"
                     size="medium"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '&:hover fieldset': {
-                          borderColor: '#00D9A3',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00D9A3',
-                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '16px',
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#00D9A3',
-                      },
-                    }}
+                    sx={textFieldSx}
                   />
                 </Grid>
 
@@ -436,24 +431,7 @@ const CourseReviewForm = () => {
                     placeholder="What did you find most useful or impactful?"
                     variant="outlined"
                     size="medium"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        '&:hover fieldset': {
-                          borderColor: '#00D9A3',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00D9A3',
-                          boxShadow: '0 0 0 3px rgba(0, 217, 163, 0.1)',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '16px',
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: '#00D9A3',
-                      },
-                    }}
+                    sx={textFieldSx}
                   />
                 </Grid>
               </Grid>
@@ -522,6 +500,7 @@ const CourseReviewForm = () => {
                             handleRatingChange('industry_relevance_rating', value)
                           }
                           size="large"
+                          aria-label="Industry Relevance Rating"
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',
@@ -553,6 +532,7 @@ const CourseReviewForm = () => {
                             handleRatingChange('instructor_rating', value)
                           }
                           size="large"
+                          aria-label="Instructor Quality Rating"
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',
@@ -584,6 +564,7 @@ const CourseReviewForm = () => {
                             handleRatingChange('useful_learning_rating', value)
                           }
                           size="large"
+                          aria-label="Usefulness & Learning Rating"
                           sx={{
                             '& .MuiRating-icon': {
                               fontSize: '2rem',

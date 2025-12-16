@@ -80,8 +80,15 @@ const suggestedLanguages = [
  *
  * A Material UI Autocomplete component for selecting programming languages.
  * Supports multiple selections, custom input, and suggested options.
+ * Prevents duplicate entries using Set.
  */
 const LanguagesInput = ({ value = [], onChange }) => {
+  const handleChange = (event, newValue) => {
+    // Remove duplicates using Set
+    const uniqueValues = Array.from(new Set(newValue));
+    onChange(uniqueValues);
+  };
+
   return (
     <Autocomplete
       multiple
@@ -89,7 +96,7 @@ const LanguagesInput = ({ value = [], onChange }) => {
       fullWidth
       options={suggestedLanguages}
       value={value}
-      onChange={(event, newValue) => onChange(newValue)}
+      onChange={handleChange}
       renderInput={(params) => (
         <TextField
           {...params}

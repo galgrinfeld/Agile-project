@@ -71,6 +71,10 @@ const dashboardStyles = {
         backgroundColor: '#f5f5f5',
     },
     nav: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
         backgroundColor: 'white',
         padding: '20px 40px',
         borderBottom: '1px solid #e0e0e0',
@@ -78,6 +82,7 @@ const dashboardStyles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        zIndex: 1000,
     },
     navButtons: {
         display: 'flex',
@@ -112,7 +117,7 @@ const dashboardStyles = {
         transition: 'all 0.2s',
     },
     content: {
-        padding: '40px 20px',
+        padding: '100px 20px 40px',
         maxWidth: '1200px',
         margin: '0 auto',
     },
