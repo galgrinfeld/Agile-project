@@ -295,12 +295,14 @@ const styles = {
         marginBottom: '4px',
         marginTop: 0,
         color: '#333',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
     subtitle: {
         fontSize: '14px',
         color: '#666',
         marginBottom: '12px',
         marginTop: 0,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
     form: {
         display: 'flex',
