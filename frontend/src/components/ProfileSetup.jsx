@@ -5,11 +5,12 @@ import { useAuth } from '../services/authService';
 import { getToken } from '../services/authService';
 import CourseSelection from './CourseSelection';
 import CareerGoals from './CareerGoals';
+import { DEPARTMENTS, YEARS } from '../utils';
 
 const API_URL = 'http://localhost:8000';
 
 const BasicInfoStep = ({ department, year, onDepartmentChange, onYearChange, errors, onNext, onBack }) => {
-    const departments = ['Computer Science'];
+    const departments = DEPARTMENTS;
 
     return (
         <div style={styles.card}>

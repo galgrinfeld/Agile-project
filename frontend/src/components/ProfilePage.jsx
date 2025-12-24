@@ -4,10 +4,9 @@ import CoursesGrid from './CoursesGrid';
 import JobRolesGrid from './JobRolesGrid';
 import { JobRoles } from '../utils';
 import './ProfilePage.css';
+import { DEPARTMENTS, YEARS } from '../utils';
 
 const API_URL = 'http://localhost:8000';
-const DEPARTMENTS = ['Computer Science'];
-const YEARS = [1, 2, 3, 4];
 
 const ProfilePage = () => {
     const [allStudents, setAllStudents] = useState([]);

@@ -1,3 +1,6 @@
+export const DEPARTMENTS = ['Computer Science'];
+export const YEARS = [1, 2, 3, 4];
+
 export const JobRoles = [
         { id: 'backend', title: 'Backend Developer', category: 'Software Development' },
         { id: 'frontend', title: 'Frontend Developer', category: 'Software Development' },
