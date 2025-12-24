@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthForm from './components/AuthForm';
 import ProfileSetup from './components/ProfileSetup';
+import ProfilePage from './components/ProfilePage';
 import { CourseReviewForm } from './components/CourseReviewForm';
 import ReviewsFeed from './components/RecentReviewsTable';
 import { getToken, removeToken, AuthProvider, useAuth } from './services/authService';
@@ -33,6 +34,15 @@ const Dashboard = ({ onLogout }) => {
                     >
                         Submit Review
                     </button>
+                <button 
+                    onClick={() => setCurrentPage('profile')}
+                    style={{
+                        ...dashboardStyles.navButton,
+                        ...(currentPage === 'profile' ? dashboardStyles.navButtonActive : {})
+                    }}
+                >
+                    Profile
+                </button>
                 </div>
                 <button 
                     onClick={onLogout}
@@ -60,6 +70,9 @@ const Dashboard = ({ onLogout }) => {
                         <CourseReviewForm />
                     </div>
                 )}
+                {currentPage === 'profile' && (
+    <ProfilePage onBack={() => setCurrentPage('dashboard')} />
+)}
             </div>
         </div>
     );

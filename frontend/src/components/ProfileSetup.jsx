@@ -237,31 +237,26 @@ const ProfileSetup = ({ onComplete, onBack }) => {
             {currentStep === 1 && (
                 <>
                     <div style={styles.progressContainer}>
-                        <div style={styles.progressStep}>
-                            <div style={styles.progressIconActive}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
-                                    <path d="M12 14C7.58172 14 4 15.7909 4 18V22H20V18C20 15.7909 16.4183 14 12 14Z" fill="white"/>
-                                </svg>
-                            </div>
-                            <div style={styles.progressLabelActive}>Basic Info</div>
-                        </div>
-                        <div style={styles.progressLine}></div>
-                        <div style={styles.progressStep}>
-                            <div style={styles.progressIcon}>2</div>
-                            <div style={styles.progressLabel}>Step 2</div>
-                        </div>
-                        <div style={styles.progressLine}></div>
-                        <div style={styles.progressStep}>
-                            <div style={styles.progressIcon}>2</div>
-                            <div style={styles.progressLabel}>Courses</div>
-                        </div>
-                        <div style={styles.progressLine}></div>
-                        <div style={styles.progressStep}>
-                            <div style={styles.progressIcon}>3</div>
-                            <div style={styles.progressLabel}>Career Goals</div>
-                        </div>
-                    </div>
+    <div style={styles.progressStep}>
+        <div style={styles.progressIconActive}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                <path d="M12 14C7.58172 14 4 15.7909 4 18V22H20V18C20 15.7909 16.4183 14 12 14Z" fill="white"/>
+            </svg>
+        </div>
+        <div style={styles.progressLabelActive}>Basic Info</div>
+    </div>
+    <div style={styles.progressLine}></div>
+    <div style={styles.progressStep}>
+        <div style={styles.progressIcon}>2</div>
+        <div style={styles.progressLabel}>Courses</div>
+    </div>
+    <div style={styles.progressLine}></div>
+    <div style={styles.progressStep}>
+        <div style={styles.progressIcon}>3</div>
+        <div style={styles.progressLabel}>Career Goals</div>
+    </div>
+</div>
                     <BasicInfoStep
                         department={department}
                         year={year}
