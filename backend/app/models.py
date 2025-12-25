@@ -58,6 +58,53 @@ class Rating(Base):
 
 
 # --------------------
+# Career Goals Table
+# --------------------
+class CareerGoal(Base):
+    __tablename__ = "career_goals"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(80), nullable=False)
+    description = Column(Text)
+
+    technical_skills = relationship('CareerGoalTechnicalSkill', back_populates='career_goal', cascade='all, delete-orphan')
+    human_skills = relationship('CareerGoalHumanSkill', back_populates='career_goal', cascade='all, delete-orphan')
+
+# --------------------
+# Skills Table
+# --------------------
+class Skill(Base):
+    __tablename__ = "skills"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(80), nullable=False)
+    type = Column(String(20), nullable=False)  # 'technical' or 'human'
+    description = Column(Text)
+
+    technical_career_goals = relationship('CareerGoalTechnicalSkill', back_populates='skill', cascade='all, delete-orphan')
+    human_career_goals = relationship('CareerGoalHumanSkill', back_populates='skill', cascade='all, delete-orphan')
+
+# -------------------------------
+# CareerGoalTechnicalSkills Join Table
+# -------------------------------
+class CareerGoalTechnicalSkill(Base):
+    __tablename__ = 'career_goal_technical_skills'
+    career_goal_id = Column(Integer, ForeignKey('career_goals.id', ondelete='CASCADE'), primary_key=True)
+    skill_id = Column(Integer, ForeignKey('skills.id', ondelete='CASCADE'), primary_key=True)
+
+    career_goal = relationship('CareerGoal', back_populates='technical_skills')
+    skill = relationship('Skill', back_populates='technical_career_goals')
+
+# -------------------------------
+# CareerGoalHumanSkills Join Table
+# -------------------------------
+class CareerGoalHumanSkill(Base):
+    __tablename__ = 'career_goal_human_skills'
+    career_goal_id = Column(Integer, ForeignKey('career_goals.id', ondelete='CASCADE'), primary_key=True)
+    skill_id = Column(Integer, ForeignKey('skills.id', ondelete='CASCADE'), primary_key=True)
+
+    career_goal = relationship('CareerGoal', back_populates='human_skills')
+    skill = relationship('Skill', back_populates='human_career_goals')
+
+# --------------------
 # Course Reviews Table
 # --------------------
 class CourseReview(Base):
