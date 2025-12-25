@@ -10,6 +10,7 @@ import { DEPARTMENTS, YEARS } from '../utils';
 const API_URL = 'http://localhost:8000';
 
 const ProfilePage = () => {
+    const [careerGoalsError, setCareerGoalsError] = useState('');
     const [allStudents, setAllStudents] = useState([]);
     const { currentUser, token } = useAuth();
     const [loading, setLoading] = useState(true);
@@ -18,7 +19,6 @@ const ProfilePage = () => {
     const [formData, setFormData] = useState({});
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const [nameError, setNameError] = useState(null);
     const [selectedGoals, setSelectedGoals] = useState([]);
     const [showCourseSelector, setShowCourseSelector] = useState(false);
     const [showGoalsSelector, setShowGoalsSelector] = useState(false);
@@ -79,10 +79,6 @@ const ProfilePage = () => {
     function handleChange(e) {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (name === 'name' && allStudents) {
-            const exists = allStudents.some(s => s.name?.toLowerCase() === value.toLowerCase() && s.id !== currentUser.id);
-            setNameError(exists ? 'Name already taken.' : null);
-        }
     }
 
     const handleToggleCourse = (courseId) => {
@@ -101,9 +97,10 @@ const ProfilePage = () => {
         const newGoals = isSelected
             ? currentGoals.filter(id => id !== goalId)
             : [...currentGoals, goalId];
-        
+
         setSelectedGoals(newGoals);
         setFormData(prev => ({ ...prev, career_goals: newGoals }));
+        setCareerGoalsError(newGoals.length === 0 ? 'Please select at least one career goal.' : '');
     };
 
     const handleToastClose = (event, reason) => {
@@ -113,6 +110,12 @@ const ProfilePage = () => {
 
     async function handleSave(e) {
         e.preventDefault();
+        if ((formData.career_goals || []).length === 0) {
+            setCareerGoalsError('Please select at least one career goal.');
+            return;
+        } else {
+            setCareerGoalsError('');
+        }
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/students/${currentUser.id}`, {
@@ -126,7 +129,7 @@ const ProfilePage = () => {
             const updated = await res.json();
             setProfile(updated);
             setEditMode(false);
-            
+
             // Trigger the toast notification instead of setting a success boolean
             setToastOpen(true); 
         } catch(e) { 
@@ -173,12 +176,7 @@ const ProfilePage = () => {
                     {/* Basic Info using Labels */}
                     <label className="profile-section">
                         <span className="section-title">Name:</span>
-                        {editMode ? (
-                            <input type="text" name="name" value={formData.name} className="profile-input" onChange={handleChange} autoFocus />
-                        ) : (
-                            <div className="read-value">{profile.name}</div>
-                        )}
-                        {editMode && nameError && <span className="field-error">{nameError}</span>}
+                        <div className="read-value">{profile.name}</div>
                     </label>
 
                     <label className="profile-section">
@@ -238,23 +236,24 @@ const ProfilePage = () => {
                                 {showGoalsSelector ? 'Done Selecting' : 'Edit Goals'}
                             </button>
                         )}
-                        {editMode && showGoalsSelector ? (
-                            <div className="selector-wrapper">
-                                <JobRolesGrid jobRoles={JobRoles} selectedGoals={selectedGoals} handleToggleGoal={handleToggleGoal} />
-                            </div>
-                        ) : (
-                            <div className="tag-list">
-                                {(editMode ? formData.career_goals : profile.career_goals || []).map(id => (
-                                    <span className="profile-tag" key={id}>{goalIdToName(id)}</span>
-                                ))}
-                                {(editMode ? formData.career_goals : profile.career_goals || []).length === 0 && <span className="profile-hint">No goals.</span>}
-                            </div>
-                        )}
+{editMode && showGoalsSelector ? (
+    <div className="selector-wrapper">
+        <JobRolesGrid jobRoles={JobRoles} selectedGoals={selectedGoals} handleToggleGoal={handleToggleGoal} />
+        {careerGoalsError && <div style={{ color: '#dc3545', fontSize: 15, marginTop: 10 }}>{careerGoalsError}</div>}
+    </div>
+) : (
+    <div className="tag-list">
+        {(editMode ? formData.career_goals : profile.career_goals || []).map(id => (
+            <span className="profile-tag" key={id}>{goalIdToName(id)}</span>
+        ))}
+        {(editMode ? formData.career_goals : profile.career_goals || []).length === 0 && <span className="profile-hint">No goals.</span>}
+    </div>
+)}
                     </div>
 
                     {editMode && (
                         <div className="button-row-center">
-                            <button type="submit" className="apply-btn" disabled={loading}>Apply Changes</button>
+                            <button type="submit" className="apply-btn" disabled={loading || (editMode && (formData.career_goals?.length === 0))}>Apply Changes</button>
                         </div>
                     )}
                 </form>
