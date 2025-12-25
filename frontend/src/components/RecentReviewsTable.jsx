@@ -214,19 +214,6 @@ const ReviewsFeed = ({ onNavigateToReview }) => {
           }}
           elevation={0}
         >
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 1 }}>
-          <Button
-            onClick={() => setPage(p => Math.max(0, p - 1))}
-            disabled={page === 0}
-            sx={{ minWidth: 0, px: 2, fontWeight: 'bold' }}>&lt;</Button>
-          <Typography sx={{ mx: 2, fontSize: 15, color: '#666' }}>
-            {page + 1} / {Math.max(1, Math.ceil(reviews.length / 3))}
-          </Typography>
-          <Button
-            onClick={() => setPage(p => (p + 1 < Math.ceil(reviews.length / 3) ? p + 1 : p))}
-            disabled={page + 1 >= Math.ceil(reviews.length / 3)}
-            sx={{ minWidth: 0, px: 2, fontWeight: 'bold' }}>&gt;</Button>
-        </Box>
           <Table stickyHeader aria-label="course reviews table" size="small">
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
@@ -515,6 +502,19 @@ const ReviewsFeed = ({ onNavigateToReview }) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 1 }}>
+          <Button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            sx={{ minWidth: 0, px: 2, fontWeight: 'bold' }}>&lt;</Button>
+          <Typography sx={{ mx: 2, fontSize: 15, color: '#666' }}>
+            {page + 1} / {Math.max(1, Math.ceil(reviews.length / 3))}
+          </Typography>
+          <Button
+            onClick={() => setPage(p => (p + 1 < Math.ceil(reviews.length / 3) ? p + 1 : p))}
+            disabled={page + 1 >= Math.ceil(reviews.length / 3)}
+            sx={{ minWidth: 0, px: 2, fontWeight: 'bold' }}>&gt;</Button>
+        </Box>
       </CardContent>
     </Card>
   );
