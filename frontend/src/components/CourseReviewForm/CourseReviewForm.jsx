@@ -260,15 +260,11 @@ const CourseReviewForm = () => {
           elevation={6}
           sx={{
             width: '100%',
-            maxWidth: 560,
-            borderRadius: '10px',
+            maxWidth: 900,
+            borderRadius: '12px',
             backgroundColor: '#ffffff',
-            boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             overflow: 'hidden',
-            margin: '0 auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
           }}
         >
           {/* Header Section */}
