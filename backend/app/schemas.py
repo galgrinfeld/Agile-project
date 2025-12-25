@@ -143,5 +143,60 @@ class CourseReviewResponse(CourseReviewBase):
         from_attributes = True
 
 
+# ==================== COURSE DETAIL SCHEMAS ====================
+class PrerequisiteCourseResponse(BaseModel):
+    """Schema for prerequisite course in course details."""
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class CourseDetailsResponse(BaseModel):
+    """Schema for detailed course response with prerequisites."""
+    id: int
+    name: str
+    description: Optional[str] = None
+    workload: Optional[int] = None
+    credits: Optional[float] = None
+    status: Optional[str] = None
+    prerequisites: List[PrerequisiteCourseResponse] = []
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CourseStatsResponse(BaseModel):
+    """Schema for course statistics (aggregated ratings)."""
+    review_count: int
+    avg_final_score: Optional[float] = 0.0
+    avg_industry_relevance: Optional[float] = 0.0
+    avg_instructor_quality: Optional[float] = 0.0
+    avg_useful_learning: Optional[float] = 0.0
+
+
+class CourseReviewDetailedResponse(CourseReviewBase):
+    """Schema for detailed course review with student name."""
+    id: int
+    course_id: int
+    student_id: int
+    final_score: float
+    created_at: datetime
+    student_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PaginatedCourseReviewsResponse(BaseModel):
+    """Schema for paginated course reviews."""
+    items: List[CourseReviewDetailedResponse]
+    page: int
+    page_size: int
+    total: int
+
+
 # Rebuild models to resolve forward references
 CourseReviewResponse.model_rebuild()

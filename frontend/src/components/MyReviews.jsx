@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/authService';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography, Box, Rating, Chip, Alert, Button } from '@mui/material';
 
@@ -18,6 +19,7 @@ const formatDate = (dateString) => {
 };
 
 const MyReviews = () => {
+  const navigate = useNavigate();
   const { currentUser, token } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,17 @@ const MyReviews = () => {
             </TableHead>
             <TableBody>
               {reviews.map((review, i) => (
-                <TableRow key={review.id} sx={{ backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa', borderBottom: '1px solid #e0e0e0' }}>
+                <TableRow 
+                  key={review.id} 
+                  onClick={() => navigate(`/courses/${review.course_id}?highlightReviewId=${review.id}`)}
+                  sx={{ 
+                    backgroundColor: i % 2 === 0 ? '#fff' : '#fafafa', 
+                    borderBottom: '1px solid #e0e0e0',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: '#e8f5e9',
+                    },
+                  }}>
                   <TableCell align="left">{review.course_id}</TableCell>
                   <TableCell align="left">{review.course?.name || 'Unknown Course'}</TableCell>
                   <TableCell align="center"><Typography sx={{ fontWeight: 700, color: review.final_score >= 8 ? '#4caf50' : review.final_score >= 5 ? '#ff9800' : '#f44336' }}>{review.final_score?.toFixed(1)}/10</Typography></TableCell>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -57,6 +58,7 @@ const getScoreColor = (score) => {
  * in a clean, Material-UI table with comprehensive styling and features.
  */
 const ReviewsFeed = ({ onNavigateToReview }) => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
 
   const { currentUser, token } = useAuth();
@@ -333,11 +335,13 @@ const ReviewsFeed = ({ onNavigateToReview }) => {
               {reviews.slice(page * 3, page * 3 + 3).map((review, index) => (
                 <TableRow
                   key={review.id}
+                  onClick={() => navigate(`/courses/${review.course_id}?highlightReviewId=${review.id}`)}
                   sx={{
                     backgroundColor:
                       index % 2 === 0 ? '#ffffff' : '#fafafa',
                     '&:hover': {
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: '#e8f5e9',
+                      cursor: 'pointer',
                     },
                     borderBottom: '1px solid #e0e0e0',
                   }}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -15,6 +16,7 @@ import {
 import { useAuth } from '../services/authService';
 
 const Navbar = ({ currentPage, onNavigate, onLogout }) => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -33,9 +35,9 @@ const Navbar = ({ currentPage, onNavigate, onLogout }) => {
   const handleMenuItemClick = (action) => {
     handleMenuClose();
     if (action === 'profile') {
-      onNavigate('profile');
+      navigate('/profile');
     } else if (action === 'reviews') {
-      onNavigate('my-reviews');
+      navigate('/my-reviews');
     } else if (action === 'logout') {
       onLogout();
     }
@@ -67,7 +69,7 @@ const Navbar = ({ currentPage, onNavigate, onLogout }) => {
       >
         {/* Left: Logo/App Name - Clickable */}
         <Box
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => navigate('/dashboard')}
           sx={{
             display: 'flex',
             alignItems: 'center',
