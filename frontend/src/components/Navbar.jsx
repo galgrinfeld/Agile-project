@@ -66,14 +66,19 @@ const Navbar = ({ currentPage, onNavigate, onLogout }) => {
           py: 1.5,
         }}
       >
-        {/* Left: Logo/App Name */}
+        {/* Left: Logo/App Name - Clickable */}
         <Box
+          onClick={() => onNavigate('dashboard')}
           sx={{
             display: 'flex',
             alignItems: 'center',
             gap: 0.5,
             cursor: 'pointer',
             minWidth: 'fit-content',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              opacity: 0.8,
+            },
           }}
         >
           <Box
@@ -115,40 +120,6 @@ const Navbar = ({ currentPage, onNavigate, onLogout }) => {
             ml: 4,
           }}
         >
-          {/* Dashboard */}
-          <Button
-            onClick={() => onNavigate('dashboard')}
-            sx={{
-              position: 'relative',
-              color: currentPage === 'dashboard' ? '#00D9A3' : '#666',
-              backgroundColor: 'transparent',
-              fontSize: '14px',
-              fontWeight: currentPage === 'dashboard' ? 600 : 500,
-              textTransform: 'none',
-              px: 2,
-              py: 1,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                color: '#00D9A3',
-                backgroundColor: 'transparent',
-              },
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: currentPage === 'dashboard' ? '60%' : '0%',
-                height: '2px',
-                backgroundColor: '#00D9A3',
-                borderRadius: '1px',
-                transition: 'width 0.2s ease',
-              },
-            }}
-          >
-            Dashboard
-          </Button>
-
           {/* Submit Review */}
           <Button
             onClick={() => onNavigate('review')}
