@@ -125,6 +125,7 @@ class CourseResponse(BaseModel):
     description: Optional[str] = None
     difficulty: Optional[int] = None
     workload: Optional[int] = None
+    credits: Optional[float] = None
 
     class Config:
         from_attributes = True

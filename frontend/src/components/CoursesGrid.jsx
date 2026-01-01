@@ -15,7 +15,7 @@ const CoursesGrid = ({ filteredCourses, selectedCourses, handleToggleCourse, get
             filteredCourses.map((course) => {
                 const isSelected = selectedCourses.includes(course.id);
                 const courseCode = getCourseCode(course.description);
-                const credits = course.workload || 0;
+                const credits = course.credits || course.workload || 0;
 
                 return (
                     <div
