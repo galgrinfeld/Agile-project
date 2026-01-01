@@ -131,6 +131,25 @@ class CourseResponse(BaseModel):
         from_attributes = True
 
 
+class SkillResponse(BaseModel):
+    """Schema for Skill in responses."""
+    id: int
+    name: str
+    type: str  # 'technical' or 'human'
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CourseWithSkillsResponse(CourseResponse):
+    """Extended Course response that includes associated skills."""
+    skills: List['SkillResponse'] = []
+
+    class Config:
+        from_attributes = True
+
+
 class CourseReviewResponse(CourseReviewBase):
     """Schema for Course Review response."""
     id: int
@@ -155,7 +174,7 @@ class PrerequisiteCourseResponse(BaseModel):
 
 
 class CourseDetailsResponse(BaseModel):
-    """Schema for detailed course response with prerequisites."""
+    """Schema for detailed course response with prerequisites and skills."""
     id: int
     name: str
     description: Optional[str] = None
@@ -163,6 +182,7 @@ class CourseDetailsResponse(BaseModel):
     credits: Optional[float] = None
     status: Optional[str] = None
     prerequisites: List[PrerequisiteCourseResponse] = []
+    skills: List['SkillResponse'] = []
     created_at: datetime
 
     class Config:

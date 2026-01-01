@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, func
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, func, UniqueConstraint, Index
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -45,6 +45,7 @@ class Course(Base):
         back_populates="course",
         cascade="all, delete-orphan"
     )
+    skills = relationship("Skill", secondary="course_skills", back_populates="courses")
 
 
 # --------------------
@@ -103,6 +104,7 @@ class Skill(Base):
 
     technical_career_goals = relationship('CareerGoalTechnicalSkill', back_populates='skill', cascade='all, delete-orphan')
     human_career_goals = relationship('CareerGoalHumanSkill', back_populates='skill', cascade='all, delete-orphan')
+    courses = relationship("Course", secondary="course_skills", back_populates="skills")
 
 # -------------------------------
 # CareerGoalTechnicalSkills Join Table
@@ -151,3 +153,22 @@ class CourseReview(Base):
 
     student = relationship("Student", back_populates="course_reviews")
     course = relationship("Course", back_populates="course_reviews")
+
+
+# --------------------
+# Course Skills (Junction Table)
+# --------------------
+class CourseSkill(Base):
+    __tablename__ = "course_skills"
+
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    skill_id = Column(Integer, ForeignKey("skills.id", ondelete="CASCADE"), nullable=False)
+    relevance_score = Column(Float, nullable=True)  # 0.0 to 1.0, optional
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('course_id', 'skill_id', name='uq_course_skill'),
+        Index('ix_course_skills_course_id', 'course_id'),
+        Index('ix_course_skills_skill_id', 'skill_id'),
+    )

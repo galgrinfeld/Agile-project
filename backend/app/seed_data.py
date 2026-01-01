@@ -17,6 +17,7 @@ def seed_database():
     # --- CRITICAL: Drop all existing tables to apply the new schema ---
     try:
         # Drop all tables with CASCADE to handle dependencies and ensure the new schema is used
+        db.execute(text("DROP TABLE IF EXISTS course_skills CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS course_reviews CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS course_prerequisites CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS ratings CASCADE"))
@@ -31,7 +32,7 @@ def seed_database():
     
     # Create all tables (Now includes 'hashed_password' on the students table)
     models.Base.metadata.create_all(bind=engine)
-    print("Database schema created successfully (tables: students, courses, ratings, course_reviews).")
+    print("Database schema created successfully (tables: students, courses, ratings, course_reviews, course_skills).")
     
     # --- ADD SAMPLE COURSES ---
     sample_courses = [

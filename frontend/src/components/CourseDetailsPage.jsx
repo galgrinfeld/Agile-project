@@ -331,6 +331,100 @@ const CourseDetailsPage = () => {
                   </Typography>
                 )}
               </Box>
+
+              {/* Skills Section */}
+              <Box sx={{ pt: 1 }}>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#666',
+                    display: 'block',
+                    mb: 1.5,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Skills You'll Learn
+                </Typography>
+                {course.skills && course.skills.length > 0 ? (
+                  <Stack spacing={1}>
+                    {/* Technical Skills */}
+                    {course.skills.filter(s => s.type === 'technical').length > 0 && (
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: '#00D9A3',
+                            display: 'block',
+                            mb: 0.8,
+                            fontSize: '0.7rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.3px',
+                          }}
+                        >
+                          Technical
+                        </Typography>
+                        <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ gap: 0.8 }}>
+                          {course.skills.filter(s => s.type === 'technical').map((skill) => (
+                            <Chip
+                              key={skill.id}
+                              label={skill.name}
+                              size="small"
+                              sx={{
+                                backgroundColor: '#e0f7f4',
+                                color: '#00D9A3',
+                                fontWeight: 500,
+                                border: '1px solid #b3ebe7',
+                              }}
+                            />
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                    
+                    {/* Human Skills */}
+                    {course.skills.filter(s => s.type === 'human').length > 0 && (
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: '#ff9800',
+                            display: 'block',
+                            mb: 0.8,
+                            fontSize: '0.7rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.3px',
+                          }}
+                        >
+                          Human Skills
+                        </Typography>
+                        <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ gap: 0.8 }}>
+                          {course.skills.filter(s => s.type === 'human').map((skill) => (
+                            <Chip
+                              key={skill.id}
+                              label={skill.name}
+                              size="small"
+                              sx={{
+                                backgroundColor: '#fff3e0',
+                                color: '#ff9800',
+                                fontWeight: 500,
+                                border: '1px solid #ffe0b2',
+                              }}
+                            />
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" sx={{ color: '#999', fontStyle: 'italic' }}>
+                    No skills data available
+                  </Typography>
+                )}
+              </Box>
             </Stack>
           </CardContent>
         </Card>
