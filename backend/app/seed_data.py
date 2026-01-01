@@ -510,6 +510,10 @@ def seed_database():
     print("Sample career goals and skills added successfully.")
     db.close()
     
+    # Backfill course skills using intelligent keyword matching
+    from .backfill_course_skills import backfill_course_skills
+    backfill_course_skills()
+    
     # Seed clusters after all other data is populated
     from .seed_clusters import seed_clusters
     seed_clusters()
