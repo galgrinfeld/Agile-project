@@ -7,6 +7,7 @@ import ProfileSetup from './components/ProfileSetup';
 import ProfilePage from './components/ProfilePage';
 import { CourseReviewForm } from './components/CourseReviewForm';
 import ReviewsFeed from './components/RecentReviewsTable';
+import MostRecommendedCourses from './components/MostRecommendedCourses';
 import MyReviews from './components/MyReviews';
 import Navbar from './components/Navbar';
 import CourseDetailsPage from './components/CourseDetailsPage';
@@ -56,6 +57,7 @@ const DashboardPage = ({ onNavigate }) => {
                             Your personalized course recommendations
                         </Typography>
                     </Box>
+                    <MostRecommendedCourses />
                     <ReviewsFeed 
                         onNavigateToReview={() => onNavigate('review')}
                     />

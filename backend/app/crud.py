@@ -24,8 +24,22 @@ def create_student(db: Session, student_data: Dict[str, Any]):
     - 'career_goal_id' (optional)
     - 'human_skill_ids' (optional, list of skill IDs)
     """
-    # Extract many-to-many fields before creating the student
-    human_skill_ids = student_data.pop('human_skill_ids', [])
+    # Accept both 'human_skill_ids' (backend) and 'human_skills' (frontend)
+    human_skill_ids = student_data.pop('human_skill_ids', None)
+    if human_skill_ids is None:
+        human_skill_ids = student_data.pop('human_skills', [])
+
+    # Accept 'career_goals' from frontend (list) and map to single career_goal_id
+    career_goals = student_data.pop('career_goals', None)
+    if career_goals is not None and isinstance(career_goals, list) and len(career_goals) > 0:
+        # frontend sends goal ids (strings sometimes) — coerce to int
+        try:
+            student_data['career_goal_id'] = int(career_goals[0])
+        except Exception:
+            student_data['career_goal_id'] = None
+    # Extract courses_taken before constructing the Student model to avoid
+    # passing it as an unexpected kwarg to SQLAlchemy model constructor.
+    courses_taken = student_data.pop('courses_taken', None)
     
     # Create the student with simple fields
     db_student = models.Student(**student_data)
@@ -35,10 +49,23 @@ def create_student(db: Session, student_data: Dict[str, Any]):
     # Add human skills (many-to-many)
     if human_skill_ids:
         for skill_id in human_skill_ids:
+            try:
+                sid = int(skill_id)
+            except Exception:
+                continue
             # Verify the skill exists before adding
-            skill = db.query(models.Skill).filter(models.Skill.id == skill_id).first()
+            skill = db.query(models.Skill).filter(models.Skill.id == sid).first()
             if skill:
                 db_student.human_skills.append(skill)
+
+    # Add courses_taken if provided
+    if courses_taken:
+        for course_id in courses_taken:
+            try:
+                cid = int(course_id)
+            except Exception:
+                continue
+            add_student_course(db, db_student.id, cid, status='completed')
     
     db.commit()
     db.refresh(db_student)
@@ -54,8 +81,21 @@ def update_student(db: Session, student_id: int, student_data: Dict[str, Any]):
     if not db_student:
         return None
     
-    # Extract many-to-many fields
+    # Accept both 'human_skill_ids' and 'human_skills' from frontend
     human_skill_ids = student_data.pop('human_skill_ids', None)
+    if human_skill_ids is None:
+        human_skill_ids = student_data.pop('human_skills', None)
+
+    # Accept career_goals (list) and map to single career_goal_id
+    career_goals = student_data.pop('career_goals', None)
+    if career_goals is not None:
+        if isinstance(career_goals, list) and len(career_goals) > 0:
+            try:
+                student_data['career_goal_id'] = int(career_goals[0])
+            except Exception:
+                student_data['career_goal_id'] = None
+        else:
+            student_data['career_goal_id'] = None
     
     # Update simple fields
     for key, value in student_data.items():
@@ -68,9 +108,25 @@ def update_student(db: Session, student_id: int, student_data: Dict[str, Any]):
         db_student.human_skills.clear()
         # Add new skills
         for skill_id in human_skill_ids:
-            skill = db.query(models.Skill).filter(models.Skill.id == skill_id).first()
+            try:
+                sid = int(skill_id)
+            except Exception:
+                continue
+            skill = db.query(models.Skill).filter(models.Skill.id == sid).first()
             if skill:
                 db_student.human_skills.append(skill)
+    # Update courses_taken if provided
+    courses_taken = student_data.pop('courses_taken', None)
+    if courses_taken is not None:
+        # clear existing student_courses
+        db.query(models.StudentCourse).filter(models.StudentCourse.student_id == student_id).delete()
+        db.commit()
+        for course_id in courses_taken:
+            try:
+                cid = int(course_id)
+            except Exception:
+                continue
+            add_student_course(db, student_id, cid, status='completed')
     
     db.commit()
     db.refresh(db_student)

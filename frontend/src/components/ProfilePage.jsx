@@ -50,16 +50,27 @@ const ProfilePage = () => {
                 if (!token || !currentUser) throw new Error('Not authenticated');
                 const res = await fetch(`${API_URL}/students/${currentUser.id}`);
                 const data = await res.json();
-                setProfile(data);
-setFormData({
-                     name: data.name || '',
-                     faculty: data.faculty || '',
-                     year: data.year || '',
-                     courses_taken: data.courses_taken || [],
-                     career_goals: data.career_goals || [],
-                     human_skills: data.human_skills || []
-                 });
-                setSelectedGoals(data.career_goals || []);
+                // Normalize backend response to frontend shape:
+                // - backend returns `career_goal` (object) and `human_skill_ids`.
+                // - frontend expects `career_goals` (array of ids) and `human_skills` (array of ids).
+                const normalized = {
+                    ...data,
+                    // career goals used as string ids for JobRolesGrid
+                    career_goals: data.career_goal ? [String(data.career_goal.id)] : (data.career_goals || []),
+                    // ensure human skill ids and course ids are numbers for lookups
+                    human_skills: (data.human_skill_ids || data.human_skills || []).map(id => Number(id)),
+                    courses_taken: (data.courses_taken || []).map(id => Number(id)),
+                };
+                setProfile(normalized);
+                setFormData({
+                    name: normalized.name || '',
+                    faculty: normalized.faculty || '',
+                    year: normalized.year || '',
+                    courses_taken: normalized.courses_taken || [],
+                    career_goals: normalized.career_goals || [],
+                    human_skills: normalized.human_skills || []
+                });
+                setSelectedGoals(normalized.career_goals || []);
             } catch(e) {
                 setError(e.message);
             }
@@ -124,17 +135,31 @@ setFormData({
             setCareerGoalsError('');
         }
         setLoading(true);
-        try {
+            try {
+            // Convert frontend form shape to backend-friendly payload
+            const payload = {
+                ...formData,
+                career_goal_id: (formData.career_goals && formData.career_goals.length > 0) ? parseInt(formData.career_goals[0]) : null,
+                human_skill_ids: formData.human_skills || formData.human_skill_ids || [],
+                courses_taken: formData.courses_taken || [],
+            };
             const res = await fetch(`${API_URL}/students/${currentUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
             const updated = await res.json();
-            setProfile(updated);
+            // Normalize returned student as well
+            const updatedNormalized = {
+                ...updated,
+                career_goals: updated.career_goal ? [String(updated.career_goal.id)] : (updated.career_goals || []),
+                human_skills: (updated.human_skill_ids || updated.human_skills || []).map(id => Number(id)),
+                courses_taken: (updated.courses_taken || []).map(id => Number(id)),
+            };
+            setProfile(updatedNormalized);
             setEditMode(false);
 
             // Trigger the toast notification instead of setting a success boolean
@@ -170,9 +195,18 @@ setFormData({
                         <button className="edit-btn" onClick={() => setEditMode(true)}>Edit</button>
                     ) : (
                         <button className="done-btn" onClick={() => { 
-                            setEditMode(false); 
-                            setFormData(profile); 
-                            setSelectedGoals(profile.career_goals || []);
+                            // Exit edit mode and restore normalized profile values into formData
+                            setEditMode(false);
+                            const p = profile || {};
+                            setFormData({
+                                name: p.name || '',
+                                faculty: p.faculty || '',
+                                year: p.year || '',
+                                courses_taken: p.courses_taken || [],
+                                career_goals: p.career_goals || [],
+                                human_skills: p.human_skills || []
+                            });
+                            setSelectedGoals(p.career_goals || []);
                             setShowCourseSelector(false);
                             setShowGoalsSelector(false);
                         }}>Cancel</button>
