@@ -1,8 +1,40 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, func, UniqueConstraint, Index
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, func, UniqueConstraint, Index, Table
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
+
+# --------------------
+# Student Human Skills - Junction Table
+# --------------------
+student_human_skills = Table(
+    'student_human_skills',
+    Base.metadata,
+    Column('student_id', Integer, ForeignKey('students.id', ondelete='CASCADE'), primary_key=True),
+    Column('skill_id', Integer, ForeignKey('skills.id', ondelete='CASCADE'), primary_key=True),
+    Column('created_at', DateTime, default=datetime.utcnow, nullable=False),
+    Index('ix_student_human_skills_skill_id', 'skill_id'),
+)
+
+# --------------------
+# Student Courses - Association Object (to hold status)
+# --------------------
+class StudentCourse(Base):
+    __tablename__ = "student_courses"
+    
+    student_id = Column(Integer, ForeignKey('students.id', ondelete='CASCADE'), primary_key=True)
+    course_id = Column(Integer, ForeignKey('courses.id', ondelete='CASCADE'), primary_key=True)
+    status = Column(String(20), nullable=False, default='completed')
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    __table_args__ = (
+        Index('ix_student_courses_course_id', 'course_id'),
+        Index('ix_student_courses_status', 'student_id', 'status'),
+    )
+    
+    # Relationships
+    student = relationship('Student', back_populates='student_courses')
+    course = relationship('Course')
+
 
 # --------------------
 # Student Table
@@ -15,11 +47,13 @@ class Student(Base):
     hashed_password = Column(String, nullable=False) # <<< ADDED for Authentication
     faculty = Column(String, nullable=True)
     year = Column(Integer, nullable=True)
-    courses_taken = Column(ARRAY(Integer), default=list)
-    career_goals = Column(ARRAY(String), default=list)  # Career goals/job roles
-    human_skills = Column(ARRAY(Integer), default=list)  # Array of skill IDs
+    career_goal_id = Column(Integer, ForeignKey('career_goals.id'), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
+    career_goal = relationship('CareerGoal', foreign_keys=[career_goal_id])
+    human_skills = relationship('Skill', secondary=student_human_skills, back_populates='students')
+    student_courses = relationship('StudentCourse', back_populates='student', cascade='all, delete-orphan')
     ratings = relationship("Rating", back_populates="student", cascade="all, delete-orphan")
     course_reviews = relationship("CourseReview", back_populates="student", cascade="all, delete-orphan")
 
@@ -107,6 +141,7 @@ class Skill(Base):
     technical_career_goals = relationship('CareerGoalTechnicalSkill', back_populates='skill', cascade='all, delete-orphan')
     human_career_goals = relationship('CareerGoalHumanSkill', back_populates='skill', cascade='all, delete-orphan')
     courses = relationship("Course", secondary="course_skills", back_populates="skills")
+    students = relationship('Student', secondary=student_human_skills, back_populates='human_skills')
 
 # -------------------------------
 # CareerGoalTechnicalSkills Join Table

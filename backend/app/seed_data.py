@@ -17,6 +17,8 @@ def seed_database():
     # --- CRITICAL: Drop all existing tables to apply the new schema ---
     try:
         # Drop all tables with CASCADE to handle dependencies and ensure the new schema is used
+        db.execute(text("DROP TABLE IF EXISTS student_courses CASCADE"))
+        db.execute(text("DROP TABLE IF EXISTS student_human_skills CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS course_clusters CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS course_skills CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS clusters CASCADE"))
@@ -26,6 +28,7 @@ def seed_database():
         db.execute(text("DROP TABLE IF EXISTS students CASCADE")) 
         db.execute(text("DROP TABLE IF EXISTS courses CASCADE"))
         db.execute(text("DROP TABLE IF EXISTS skills CASCADE"))
+        db.execute(text("DROP TABLE IF EXISTS career_goals CASCADE"))
         db.commit()
         print("Existing tables dropped successfully.")
     except Exception as e:
@@ -35,7 +38,7 @@ def seed_database():
     
     # Create all tables (Now includes 'hashed_password' on the students table)
     models.Base.metadata.create_all(bind=engine)
-    print("Database schema created successfully (tables: students, courses, ratings, course_reviews, course_skills, clusters, course_clusters).")
+    print("Database schema created successfully (tables: students, courses, student_courses, student_human_skills, ratings, course_reviews, course_skills, clusters, course_clusters).")
     
     # --- ADD SAMPLE COURSES ---
     sample_courses = [
@@ -355,16 +358,92 @@ def seed_database():
     db.commit()
     print(f"Course prerequisites added successfully ({len(prerequisites_data)} relationships).")
     
+    # --- ADD SKILLS (Technical and Human) ---
+    technical_skills = [
+        models.Skill(name="Python", type="technical", description="Python programming language"),
+        models.Skill(name="JavaScript", type="technical", description="JavaScript programming language"),
+        models.Skill(name="SQL", type="technical", description="Relational database language"),
+        models.Skill(name="React", type="technical", description="React.js for frontend development"),
+        models.Skill(name="Node.js", type="technical", description="Node.js for backend development"),
+        models.Skill(name="TensorFlow", type="technical", description="ML framework"),
+        models.Skill(name="C++", type="technical", description="C++ programming language"),
+        models.Skill(name="AWS", type="technical", description="Amazon Web Services"),
+        models.Skill(name="Docker", type="technical", description="Containerization"),
+        models.Skill(name="Git", type="technical", description="Version control"),
+    ]
+    human_skills = [
+        models.Skill(name="Teamwork", type="human", description="Works well in teams"),
+        models.Skill(name="Communication", type="human", description="Clear communicator"),
+        models.Skill(name="Self-learner", type="human", description="Able to learn independently"),
+        models.Skill(name="Problem-solving", type="human", description="Strong at solving new problems"),
+        models.Skill(name="Adaptability", type="human", description="Quick to adjust to change"),
+        models.Skill(name="Leadership", type="human", description="Can lead projects or teams"),
+    ]
+    db.add_all(technical_skills + human_skills)
+    db.commit()
+    print("Skills added successfully (10 technical, 6 human).")
+
+    # --- ADD CAREER GOALS ---
+    undecided = models.CareerGoal(name="Undecided", description="Student hasn't decided on a career path yet.")
+    backend = models.CareerGoal(name="Backend Developer", description="Builds server-side logic and APIs.")
+    frontend = models.CareerGoal(name="Frontend Developer", description="Develops the user interface of apps.")
+    fullstack = models.CareerGoal(name="Full Stack Developer", description="Handles both frontend and backend.")
+    mobile = models.CareerGoal(name="Mobile Developer", description="Creates mobile apps for Android/iOS.")
+    datascientist = models.CareerGoal(name="Data Scientist", description="Handles data analysis and visualization.")
+    dataanalyst = models.CareerGoal(name="Data Analyst", description="Analyzes datasets to find insights.")
+    mlengineer = models.CareerGoal(name="Machine Learning Engineer", description="Designs and deploys ML models.")
+    devops = models.CareerGoal(name="DevOps Engineer", description="Enables CI/CD and infrastructure as code.")
+    cloudarchitect = models.CareerGoal(name="Cloud Architect", description="Designs cloud-based systems.")
+    uxdesigner = models.CareerGoal(name="UX Designer", description="Designs user experiences.")
+    qaengineer = models.CareerGoal(name="QA Engineer", description="Assures software quality before release.")
+    securityengineer = models.CareerGoal(name="Security Engineer", description="Protects systems against threats.")
+    productmanager = models.CareerGoal(name="Product Manager", description="Oversees product lifecycle.")
+    embeddedsystems = models.CareerGoal(name="Embedded Systems Engineer", description="Works with hardware/firmware.")
+    db.add_all([
+        undecided, backend, frontend, fullstack, mobile, datascientist, dataanalyst, mlengineer,
+        devops, cloudarchitect, uxdesigner, qaengineer, securityengineer, productmanager, embeddedsystems
+    ])
+    db.commit()
+    print("Career goals added successfully (15 goals).")
+
     # --- ADD DEMO STUDENT ---
+    # Now fetch the "Undecided" career goal that was already created
+    undecided_goal = db.query(models.CareerGoal).filter(models.CareerGoal.name == "Undecided").first()
+    
     demo_student = models.Student(
         name="demo",
         hashed_password=get_password_hash("demo123"),
         faculty="Computer Science",
-        year=3
+        year=3,
+        career_goal_id=undecided_goal.id if undecided_goal else None
     )
     db.add(demo_student)
     db.commit()
     print("Demo student created successfully (username: demo, password: demo123).")
+    
+    # --- ADD STUDENT COURSES (for courses the demo student has taken) ---
+    # These will be set to "completed" status
+    demo_courses = [
+        models.StudentCourse(student_id=demo_student.id, course_id=10016, status="completed"),  # Intro to CS
+        models.StudentCourse(student_id=demo_student.id, course_id=10117, status="completed"),  # Data Structures
+        models.StudentCourse(student_id=demo_student.id, course_id=10208, status="completed"),  # UI Development
+    ]
+    db.add_all(demo_courses)
+    db.commit()
+    print("Demo student courses added successfully.")
+    
+    # --- ADD STUDENT HUMAN SKILLS (for demo student) ---
+    # Assign some human skills to the demo student
+    # Get human skills (skills with type='human')
+    human_skills = db.query(models.Skill).filter(models.Skill.type == 'human').all()
+    
+    if human_skills:
+        # Assign the first 3 human skills to the demo student
+        for skill in human_skills[:3]:
+            demo_student.human_skills.append(skill)
+        db.commit()
+        assigned_skills = [s.name for s in human_skills[:3]]
+        print(f"Demo student human skills added: {assigned_skills}")
     
     # --- ADD SAMPLE COURSE REVIEWS ---
     sample_reviews = [
@@ -412,104 +491,6 @@ def seed_database():
     db.add_all(sample_reviews)
     db.commit()
     print("Sample course reviews added successfully.")
-    
-    # --- ADD SKILLS (Technical and Human) ---
-    technical_skills = [
-        models.Skill(name="Python", type="technical", description="Python programming language"),
-        models.Skill(name="JavaScript", type="technical", description="JavaScript programming language"),
-        models.Skill(name="SQL", type="technical", description="Relational database language"),
-        models.Skill(name="React", type="technical", description="React.js for frontend development"),
-        models.Skill(name="Node.js", type="technical", description="Node.js for backend development"),
-        models.Skill(name="TensorFlow", type="technical", description="ML framework"),
-        models.Skill(name="C++", type="technical", description="C++ programming language"),
-        models.Skill(name="AWS", type="technical", description="Amazon Web Services"),
-        models.Skill(name="Docker", type="technical", description="Containerization"),
-        models.Skill(name="Git", type="technical", description="Version control"),
-    ]
-    human_skills = [
-        models.Skill(name="Teamwork", type="human", description="Works well in teams"),
-        models.Skill(name="Communication", type="human", description="Clear communicator"),
-        models.Skill(name="Self-learner", type="human", description="Able to learn independently"),
-        models.Skill(name="Problem-solving", type="human", description="Strong at solving new problems"),
-        models.Skill(name="Adaptability", type="human", description="Quick to adjust to change"),
-        models.Skill(name="Leadership", type="human", description="Can lead projects or teams"),
-    ]
-    db.add_all(technical_skills + human_skills)
-    db.commit()
-
-    # --- ADD CAREER GOALS ---
-    backend = models.CareerGoal(name="Backend Developer", description="Builds server-side logic and APIs.")
-    frontend = models.CareerGoal(name="Frontend Developer", description="Develops the user interface of apps.")
-    fullstack = models.CareerGoal(name="Full Stack Developer", description="Handles both frontend and backend.")
-    mobile = models.CareerGoal(name="Mobile Developer", description="Creates mobile apps for Android/iOS.")
-    datascientist = models.CareerGoal(name="Data Scientist", description="Handles data analysis and visualization.")
-    dataanalyst = models.CareerGoal(name="Data Analyst", description="Analyzes datasets to find insights.")
-    mlengineer = models.CareerGoal(name="Machine Learning Engineer", description="Designs and deploys ML models.")
-    devops = models.CareerGoal(name="DevOps Engineer", description="Enables CI/CD and infrastructure as code.")
-    cloudarchitect = models.CareerGoal(name="Cloud Architect", description="Designs cloud-based systems.")
-    uxdesigner = models.CareerGoal(name="UX Designer", description="Designs user experiences.")
-    qaengineer = models.CareerGoal(name="QA Engineer", description="Assures software quality before release.")
-    securityengineer = models.CareerGoal(name="Security Engineer", description="Protects systems against threats.")
-    productmanager = models.CareerGoal(name="Product Manager", description="Oversees product lifecycle.")
-    embeddedsystems = models.CareerGoal(name="Embedded Systems Engineer", description="Works with hardware/firmware.")
-    db.add_all([
-        backend, frontend, fullstack, mobile, datascientist, dataanalyst, mlengineer,
-        devops, cloudarchitect, uxdesigner, qaengineer, securityengineer, productmanager, embeddedsystems
-    ])
-    db.commit()
-
-    # --- ASSIGN SKILLS TO CAREER GOALS ---
-    # Query the ids just inserted
-    skill_map = {s.name: s for s in db.query(models.Skill).all()}
-    # Assigns for brevity
-    def t(name): return skill_map[name] if name in skill_map else None
-    def h(name): return skill_map[name] if name in skill_map else None
-
-    backend.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id), models.CareerGoalTechnicalSkill(skill_id=t("SQL").id), models.CareerGoalTechnicalSkill(skill_id=t("Node.js").id), models.CareerGoalTechnicalSkill(skill_id=t("Git").id)]
-    backend.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Teamwork").id), models.CareerGoalHumanSkill(skill_id=h("Problem-solving").id)]
-
-    frontend.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("JavaScript").id), models.CareerGoalTechnicalSkill(skill_id=t("React").id), models.CareerGoalTechnicalSkill(skill_id=t("Git").id)]
-    frontend.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Communication").id), models.CareerGoalHumanSkill(skill_id=h("Adaptability").id)]
-
-    fullstack.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id), models.CareerGoalTechnicalSkill(skill_id=t("JavaScript").id), models.CareerGoalTechnicalSkill(skill_id=t("SQL").id), models.CareerGoalTechnicalSkill(skill_id=t("React").id)]
-    fullstack.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Teamwork").id), models.CareerGoalHumanSkill(skill_id=h("Self-learner").id)]
-
-    mobile.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("JavaScript").id), models.CareerGoalTechnicalSkill(skill_id=t("Git").id)]
-    mobile.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Adaptability").id), models.CareerGoalHumanSkill(skill_id=h("Problem-solving").id)]
-
-    datascientist.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id), models.CareerGoalTechnicalSkill(skill_id=t("SQL").id)]
-    datascientist.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Problem-solving").id), models.CareerGoalHumanSkill(skill_id=h("Self-learner").id)]
-
-    dataanalyst.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("SQL").id), models.CareerGoalTechnicalSkill(skill_id=t("Python").id)]
-    dataanalyst.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Communication").id)]
-
-    mlengineer.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id), models.CareerGoalTechnicalSkill(skill_id=t("TensorFlow").id), models.CareerGoalTechnicalSkill(skill_id=t("SQL").id)]
-    mlengineer.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Self-learner").id), models.CareerGoalHumanSkill(skill_id=h("Problem-solving").id)]
-
-    devops.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Docker").id), models.CareerGoalTechnicalSkill(skill_id=t("AWS").id), models.CareerGoalTechnicalSkill(skill_id=t("Python").id)]
-    devops.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Teamwork").id), models.CareerGoalHumanSkill(skill_id=h("Communication").id)]
-
-    cloudarchitect.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("AWS").id), models.CareerGoalTechnicalSkill(skill_id=t("Docker").id)]
-    cloudarchitect.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Leadership").id), models.CareerGoalHumanSkill(skill_id=h("Adaptability").id)]
-
-    uxdesigner.technical_skills = []
-    uxdesigner.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Communication").id)]
-
-    qaengineer.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id)]
-    qaengineer.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Problem-solving").id)]
-
-    securityengineer.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("Python").id), models.CareerGoalTechnicalSkill(skill_id=t("C++").id)]
-    securityengineer.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Adaptability").id)]
-
-    productmanager.technical_skills = []
-    productmanager.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Leadership").id), models.CareerGoalHumanSkill(skill_id=h("Communication").id)]
-
-    embeddedsystems.technical_skills = [models.CareerGoalTechnicalSkill(skill_id=t("C++").id)]
-    embeddedsystems.human_skills = [models.CareerGoalHumanSkill(skill_id=h("Self-learner").id)]
-
-    db.commit()
-    print("Sample career goals and skills added successfully.")
-    db.close()
     
     # Backfill course skills using intelligent keyword matching
     from .backfill_course_skills import backfill_course_skills

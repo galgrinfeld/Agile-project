@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware # <<< 1. IMPORT
 from .routes import students, courses, ratings, course_reviews, auth, career_goals, skills
 from .database import Base, engine
 # CRITICAL: Import all models to ensure they're loaded into memory before table creation
-from .models import Student, Course, Rating, CourseReview
+from .models import Student, Course, Rating, CourseReview, StudentCourse
 from .seed_data import seed_database
 import os
 
