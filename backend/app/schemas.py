@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -17,8 +17,9 @@ class StudentBase(BaseModel):
     name: str
     faculty: Optional[str] = None
     year: Optional[int] = None
+    career_goal_id: Optional[int] = None
+    human_skill_ids: List[int] = []
     courses_taken: List[int] = []
-    career_goals: List[str] = []
 
 
 class StudentCreate(StudentBase):
@@ -30,14 +31,61 @@ class StudentCreateAuth(StudentBase):
     password: str = Field(min_length=6) # <<< ADDED for Registration
 
 
+class CareerGoalResponse(BaseModel):
+    """Schema for Career Goal in responses."""
+    id: int
+    name: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class StudentCourseResponse(BaseModel):
+    """Schema for StudentCourse relationship with status."""
+    course_id: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class StudentResponse(StudentBase):
     """Schema for Student response."""
     id: int
     created_at: datetime
+    career_goal: Optional[CareerGoalResponse] = None
+    human_skill_ids: List[int] = []
+    courses_taken: List[int] = []  # List of course IDs from student_courses
     # NOTE: hashed_password is NOT included for security
 
     class Config:
         from_attributes = True
+    
+    @field_validator('human_skill_ids', mode='before')
+    @classmethod
+    def extract_skill_ids(cls, v):
+        """Extract skill IDs from Skill objects or return as-is if already a list."""
+        if isinstance(v, list):
+            # If it's already a list of integers, return as-is
+            if v and isinstance(v[0], int):
+                return v
+            # If it's a list of Skill objects, extract IDs
+            return [skill.id if hasattr(skill, 'id') else skill for skill in v]
+        return v if v else []
+    
+    @field_validator('courses_taken', mode='before')
+    @classmethod
+    def extract_course_ids(cls, v):
+        """Extract course IDs from StudentCourse objects or return as-is if already a list."""
+        if isinstance(v, list):
+            # If it's already a list of integers, return as-is
+            if v and isinstance(v[0], int):
+                return v
+            # If it's a list of StudentCourse objects, extract course IDs
+            return [sc.course_id if hasattr(sc, 'course_id') else sc for sc in v]
+        return v if v else []
 
 
 # ==================== COURSE SCHEMAS ====================
