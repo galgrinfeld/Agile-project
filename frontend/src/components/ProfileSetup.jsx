@@ -201,7 +201,7 @@ const ProfileSetup = ({ onComplete, onBack }) => {
                         faculty: department,
                         year: year,
                         courses_taken: selectedCourses,
-                        career_goals: selectedGoals
+                        career_goal_id: (selectedGoals && selectedGoals.length > 0) ? parseInt(selectedGoals[0]) : null
                     }),
                 });
 
@@ -238,8 +238,8 @@ const ProfileSetup = ({ onComplete, onBack }) => {
                         faculty: department,
                         year: year,
                         courses_taken: selectedCourses,
-                        career_goals: selectedGoals,
-                        human_skills: selectedHumanSkills
+                        career_goal_id: (selectedGoals && selectedGoals.length > 0) ? parseInt(selectedGoals[0]) : null,
+                        human_skill_ids: selectedHumanSkills
                     }),
                 });
                 if (!response.ok) {

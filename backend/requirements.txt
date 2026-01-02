@@ -8,3 +8,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 cryptography
 python-multipart
+numpy==1.26.4
