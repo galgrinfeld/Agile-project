@@ -279,10 +279,10 @@ const MostRecommendedCourses = () => {
                                 Missing Technical Skills
                               </Typography>
                               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                                {rec.missing_technical_skills.map((skillId) => (
+                                {rec.missing_technical_skills.map((skill) => (
                                   <Chip
-                                    key={skillId}
-                                    label={`Skill #${skillId}`}
+                                    key={typeof skill === 'object' ? skill.skill_id : skill}
+                                    label={typeof skill === 'object' ? `${skill.name} (${skill.relevance_score?.toFixed(2) || 'N/A'})` : `Skill #${skill}`}
                                     size="small"
                                     color="error"
                                     variant="outlined"
