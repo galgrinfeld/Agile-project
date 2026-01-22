@@ -17,10 +17,48 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- Password Utilities ---
+def _truncate_password_to_bytes(password, max_bytes: int = 72) -> bytes:
+    """Truncate password to max_bytes, handling UTF-8 boundaries safely."""
+    if password is None:
+        raise ValueError("Password cannot be None")
+    
+    # Convert to string if needed
+    if isinstance(password, bytes):
+        password_str = password.decode('utf-8', errors='ignore')
+    elif not isinstance(password, str):
+        password_str = str(password)
+    else:
+        password_str = password
+    
+    # Encode to bytes to check length
+    password_bytes = password_str.encode('utf-8')
+    if len(password_bytes) <= max_bytes:
+        return password_bytes
+    
+    # Truncate to max_bytes
+    truncated_bytes = password_bytes[:max_bytes]
+    # Remove any incomplete UTF-8 sequences at the end
+    while truncated_bytes and (truncated_bytes[-1] & 0x80) and not (truncated_bytes[-1] & 0x40):
+        truncated_bytes = truncated_bytes[:-1]
+    
+    return truncated_bytes
+
 def verify_password(plain_password, hashed_password):
+    # Bcrypt has a 72-byte limit, so truncate if necessary
+    if plain_password is None:
+        return False
+    # Truncate to bytes, then decode back to string for passlib
+    truncated_bytes = _truncate_password_to_bytes(plain_password)
+    plain_password = truncated_bytes.decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
+    # Bcrypt has a 72-byte limit, so truncate if necessary
+    if password is None:
+        raise ValueError("Password cannot be None")
+    # Truncate to bytes, then decode back to string for passlib
+    truncated_bytes = _truncate_password_to_bytes(password)
+    password = truncated_bytes.decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 # --- Authentication Core ---
@@ -66,7 +104,7 @@ def decode_token(token: str) -> Optional[dict]:
         return None
 
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_student(
@@ -78,6 +116,13 @@ def get_current_student(
     Returns the authenticated Student object.
     Raises HTTPException if token is invalid or student not found.
     """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     token = credentials.credentials
     payload = decode_token(token)
     

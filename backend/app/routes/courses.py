@@ -17,7 +17,7 @@ def get_all_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 @router.get("/search", response_model=list[schemas.CourseSearchOut])
 def search_courses(
     q: str = Query("", min_length=0),
-    limit: int = Query(10, ge=1, le=10),
+    limit: int = Query(10, ge=1),
     db: Session = Depends(get_db)
 ):
     """
@@ -36,43 +36,74 @@ def search_courses(
       4) Other contains matches
     - Stable sort by name ASC, then id ASC
     """
-    # If query is too short, return empty
-    if not q or len(q.strip()) < 2:
+    # If query is empty, return empty
+    if not q or not q.strip():
         return []
+    
+    # Allow single-digit queries (for course IDs like 1, 2, etc.)
+    # Only reject if it's not a valid search (empty after strip)
+    q = q.strip()
+    
+    # Cap limit at 10
+    limit = min(limit, 10)
     
     q = q.strip()
     
+    # Try to parse as integer for direct ID matching
+    try:
+        q_int = int(q)
+        id_match = models.Course.id == q_int
+    except ValueError:
+        q_int = None
+        id_match = None
+    
     # Build ranking logic using CASE expression
     # Higher rank value = better match
-    ranking = case(
-        # Exact ID match
-        (cast(models.Course.id, String) == q, 4),
-        # ID prefix match
-        (cast(models.Course.id, String).ilike(q + "%"), 3),
-        # Name prefix match
-        (models.Course.name.ilike(q + "%"), 2),
-        # Name contains (partial)
-        (models.Course.name.ilike("%" + q + "%"), 1),
-        # ID contains (partial)
-        (cast(models.Course.id, String).ilike("%" + q + "%"), 0),
-        else_=-1
-    )
+    ranking_conditions = []
+    
+    # Exact ID match (integer or string) - highest priority
+    if id_match is not None:
+        ranking_conditions.append((id_match, 4))
+    else:
+        ranking_conditions.append((cast(models.Course.id, String) == q, 4))
+    
+    # ID prefix match
+    ranking_conditions.append((cast(models.Course.id, String).ilike(q + "%"), 3))
+    
+    # Name prefix match
+    ranking_conditions.append((models.Course.name.ilike(q + "%"), 2))
+    
+    # Name contains (partial)
+    ranking_conditions.append((models.Course.name.ilike("%" + q + "%"), 1))
+    
+    # ID contains (partial)
+    ranking_conditions.append((cast(models.Course.id, String).ilike("%" + q + "%"), 0))
+    
+    ranking = case(*ranking_conditions, else_=-1)
+    
+    # Build filter conditions
+    filter_conditions = [models.Course.name.ilike("%" + q + "%")]
+    
+    # Add ID matching conditions
+    if id_match is not None:
+        filter_conditions.append(id_match)
+    filter_conditions.append(cast(models.Course.id, String).ilike("%" + q + "%"))
     
     # Query courses with ranking
+    from sqlalchemy import or_
     courses = db.query(
         models.Course,
         ranking.label("rank")
     ).filter(
-        (cast(models.Course.id, String).ilike("%" + q + "%")) |
-        (models.Course.name.ilike("%" + q + "%"))
+        or_(*filter_conditions)
     ).order_by(
         ranking.desc(),
         models.Course.name.asc(),
         models.Course.id.asc()
     ).limit(limit).all()
     
-    # Return only the Course models (strip the rank)
-    return [course for course, _ in courses]
+    # Return only the Course models (strip the rank) and convert to CourseSearchOut
+    return [schemas.CourseSearchOut(id=course.id, name=course.name) for course, _ in courses]
 
 
 @router.get("/{course_id}", response_model=schemas.CourseDetailsResponse)
@@ -226,10 +257,20 @@ def get_course_reviews(
 @router.post("/", response_model=schemas.CourseResponse)
 def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db)):
     """Create a new course."""
+    from sqlalchemy.exc import IntegrityError
+    
     db_course = models.Course(**course.dict())
     db.add(db_course)
-    db.commit()
-    db.refresh(db_course)
+    
+    try:
+        db.commit()
+        db.refresh(db_course)
+    except IntegrityError as e:
+        db.rollback()
+        if "name" in str(e.orig).lower() or "unique" in str(e.orig).lower():
+            raise HTTPException(status_code=400, detail="Course with this name already exists")
+        raise HTTPException(status_code=400, detail="Database constraint violation")
+    
     return db_course
 
 

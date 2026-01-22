@@ -47,13 +47,13 @@ class TestClusterSeedingIdempotency:
         Expected: All entries in course_clusters are unique (no duplicates).
         """
         # First run
-        seed_clusters()
+        seed_clusters(db_session)
         
         # Count links after first run
         first_run_count = db_session.query(CourseCluster).count()
         
         # Second run (should be idempotent)
-        seed_clusters()
+        seed_clusters(db_session)
         
         # Count links after second run
         second_run_count = db_session.query(CourseCluster).count()
@@ -63,13 +63,21 @@ class TestClusterSeedingIdempotency:
             f"Seeding not idempotent: {first_run_count} links after first run, {second_run_count} after second"
         
         # Verify unique constraint is enforced (no duplicates)
-        duplicate_pairs = db_session.query(CourseCluster.course_id, CourseCluster.cluster_id) \
-            .group_by(CourseCluster.course_id, CourseCluster.cluster_id) \
-            .having(db_session.query(CourseCluster) \
-                    .filter(CourseCluster.course_id == CourseCluster.course_id,
-                            CourseCluster.cluster_id == CourseCluster.cluster_id).count() > 1).all()
+        # Count distinct pairs using GROUP BY (SQLite compatible)
+        from sqlalchemy import func
+        unique_pairs = db_session.query(
+            CourseCluster.course_id,
+            CourseCluster.cluster_id
+        ).group_by(
+            CourseCluster.course_id,
+            CourseCluster.cluster_id
+        ).count()
         
-        assert len(duplicate_pairs) == 0, f"Found duplicate course-cluster pairs: {duplicate_pairs}"
+        total_links = db_session.query(CourseCluster).count()
+        
+        # If there are duplicates, total_links will be greater than unique_pairs
+        assert total_links == unique_pairs, \
+            f"Found duplicates: {total_links} total links but only {unique_pairs} unique pairs"
     
     def test_seed_clusters_three_times(self, db_session: Session, setup_test_courses):
         """
@@ -79,7 +87,7 @@ class TestClusterSeedingIdempotency:
         counts = []
         
         for run in range(3):
-            seed_clusters()
+            seed_clusters(db_session)
             count = db_session.query(CourseCluster).count()
             counts.append(count)
         
@@ -96,7 +104,10 @@ class TestClusterMemberships:
         Verify that cluster "Game Development" contains course_id 10220.
         Expected: course_id 10220 is linked to "Game Development" cluster.
         """
-        seed_clusters()
+        seed_clusters(db_session)
+        
+        # Refresh the session to see committed data
+        db_session.expire_all()
         
         cluster = db_session.query(Cluster).filter(
             Cluster.name == "Game Development"
@@ -116,7 +127,10 @@ class TestClusterMemberships:
         Verify that "Data Analysis" cluster contains expected courses.
         Expected: All courses in [90911, 10015, 10127, 10206, 10351, 10358] are linked.
         """
-        seed_clusters()
+        seed_clusters(db_session)
+        
+        # Refresh the session to see committed data
+        db_session.expire_all()
         
         cluster = db_session.query(Cluster).filter(
             Cluster.name == "Data Analysis"
@@ -140,7 +154,10 @@ class TestClusterMemberships:
         Verify that "Software Development" cluster is created.
         Expected: Cluster exists with all expected courses.
         """
-        seed_clusters()
+        seed_clusters(db_session)
+        
+        # Refresh the session to see committed data
+        db_session.expire_all()
         
         cluster = db_session.query(Cluster).filter(
             Cluster.name == "Software Development"
@@ -166,7 +183,10 @@ class TestMultiClusterMembership:
         Example: course_id 10147 is in both "Cyber" and "User Interfaces" and "Game Development".
         Expected: The same course appears in multiple clusters and links are preserved.
         """
-        seed_clusters()
+        seed_clusters(db_session)
+        
+        # Refresh the session to see committed data
+        db_session.expire_all()
         
         # course_id 10147 should be in multiple clusters
         multi_cluster_course_id = 10147
@@ -190,13 +210,13 @@ class TestMultiClusterMembership:
         Expected: All links from first run are preserved in second run.
         """
         # First run
-        seed_clusters()
+        seed_clusters(db_session)
         
         first_run_links = db_session.query(CourseCluster).all()
         first_run_pairs = set((link.course_id, link.cluster_id) for link in first_run_links)
         
         # Second run
-        seed_clusters()
+        seed_clusters(db_session)
         
         second_run_links = db_session.query(CourseCluster).all()
         second_run_pairs = set((link.course_id, link.cluster_id) for link in second_run_links)
@@ -227,7 +247,7 @@ class TestMissingCourseHandling:
         
         # Run seeding (some courses will be missing)
         try:
-            seed_clusters()
+            seed_clusters(db_session)
             # If we reach here, no exception was raised
             assert True, "Seeding completed without crash"
         except Exception as e:
@@ -250,7 +270,10 @@ class TestMissingCourseHandling:
             db_session.add(course)
         db_session.commit()
         
-        seed_clusters()
+        seed_clusters(db_session)
+        
+        # Refresh the session to see committed data
+        db_session.expire_all()
         
         # Verify clusters were created
         for cluster_name in ["Game Development", "Data Analysis", "Software Development"]:
@@ -266,7 +289,7 @@ class TestClusterUniqueness:
         Verify that all cluster names are unique in the database.
         Expected: No two clusters with the same name.
         """
-        seed_clusters()
+        seed_clusters(db_session)
         
         clusters = db_session.query(Cluster).all()
         cluster_names = [c.name for c in clusters]
@@ -279,10 +302,10 @@ class TestClusterUniqueness:
         Verify that re-running seeding reuses existing clusters (by name).
         Expected: Same number of clusters after re-seeding.
         """
-        seed_clusters()
+        seed_clusters(db_session)
         first_cluster_count = db_session.query(Cluster).count()
         
-        seed_clusters()
+        seed_clusters(db_session)
         second_cluster_count = db_session.query(Cluster).count()
         
         assert first_cluster_count == second_cluster_count, \
@@ -326,7 +349,7 @@ class TestExpectedReport:
         SAMPLE CLUSTERS WITH COURSES:
         ...
         """
-        seed_clusters()
+        seed_clusters(db_session)
         
         # Check that seeding completed
         captured = capsys.readouterr()

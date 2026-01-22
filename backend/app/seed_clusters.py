@@ -48,14 +48,21 @@ CLUSTERS_DATA = [
 ]
 
 
-def seed_clusters():
+def seed_clusters(db=None):
     """
     Idempotent seeding: create clusters and link them to courses.
     - Upserts clusters by unique name
     - Links courses to clusters (insert missing pairs only)
     - Handles missing course IDs gracefully
+    
+    Args:
+        db: Optional database session. If None, creates a new session.
     """
-    db = SessionLocal()
+    if db is None:
+        db = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
     
     try:
         print(f"\n{'='*70}")
@@ -71,6 +78,9 @@ def seed_clusters():
         for cluster_data in CLUSTERS_DATA:
             cluster_name = cluster_data["name"]
             course_ids = cluster_data["course_ids"]
+            
+            # Expire any cached objects to see latest committed data
+            db.expire_all()
             
             # Check if cluster exists
             existing_cluster = db.query(models.Cluster).filter(
@@ -92,6 +102,11 @@ def seed_clusters():
                 clusters_created += 1
                 print(f"✓ Cluster '{cluster_name}' created")
             
+            # Commit the cluster creation first to avoid rollback issues
+            db.commit()
+            # Verify the commit worked by refreshing
+            db.refresh(cluster)
+            
             # Link courses to cluster
             links_added = 0
             courses_not_found = []
@@ -107,26 +122,25 @@ def seed_clusters():
                     missing_course_ids.append(course_id)
                     continue
                 
-                # Check if link already exists
-                existing_link = db.query(models.CourseCluster).filter(
-                    models.CourseCluster.course_id == course_id,
-                    models.CourseCluster.cluster_id == cluster.id
-                ).first()
-                
-                if not existing_link:
-                    try:
-                        new_link = models.CourseCluster(
-                            course_id=course_id,
-                            cluster_id=cluster.id
-                        )
-                        db.add(new_link)
-                        links_added += 1
-                        total_links_added += 1
-                    except IntegrityError:
-                        db.rollback()
-                        # Link already exists, skip
-                        pass
+                # Try to add the link - let the UniqueConstraint handle duplicates
+                # Use a savepoint to isolate this operation so rollback doesn't affect cluster
+                savepoint = db.begin_nested()
+                try:
+                    new_link = models.CourseCluster(
+                        course_id=course_id,
+                        cluster_id=cluster.id
+                    )
+                    db.add(new_link)
+                    db.flush()  # Flush to check for IntegrityError immediately
+                    savepoint.commit()
+                    links_added += 1
+                    total_links_added += 1
+                except IntegrityError:
+                    # Link already exists (idempotent - skip silently)
+                    savepoint.rollback()
+                    pass
             
+            # Commit all the links for this cluster
             db.commit()
             
             # Log course linking results
@@ -166,13 +180,23 @@ def seed_clusters():
         
         print(f"\n{'='*70}\n")
         
+        # Final commit to ensure everything is persisted
+        db.commit()
+        
     except Exception as e:
         print(f"\n❌ Error during cluster seeding: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
+        # Don't exit if db was passed in (test mode) - let the test handle it
+        if should_close:
+            sys.exit(1)
+        else:
+            # In test mode, rollback and re-raise
+            db.rollback()
+            raise
     finally:
-        db.close()
+        if should_close:
+            db.close()
 
 
 if __name__ == "__main__":

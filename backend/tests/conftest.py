@@ -32,11 +32,23 @@ USE_SQLITE = os.getenv("USE_SQLITE", "true").lower() == "true"
 if USE_SQLITE:
     # SQLite in-memory database for fast tests
     SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+    
+    def enable_foreign_keys(dbapi_conn, connection_record):
+        """Enable foreign key constraints for SQLite."""
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+    
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
-        connect_args={"check_same_thread": False},
+        connect_args={
+            "check_same_thread": False,
+        },
         poolclass=StaticPool,
     )
+    # Enable foreign key constraints for SQLite on each connection
+    from sqlalchemy import event
+    event.listen(engine, "connect", enable_foreign_keys)
 else:
     # PostgreSQL test database
     SQLALCHEMY_DATABASE_URL = f"postgresql://{TEST_DB_USER}:{TEST_DB_PASSWORD}@{TEST_DB_HOST}:{TEST_DB_PORT}/{TEST_DB_NAME}"
@@ -51,11 +63,28 @@ def db_session():
     Create a fresh database session for each test.
     Creates tables, yields session, then drops tables.
     """
+    # For SQLite, enable foreign keys BEFORE creating tables
+    if USE_SQLITE:
+        # Get a raw connection and enable foreign keys
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("PRAGMA foreign_keys=ON"))
+            conn.commit()
+    
     # Create all tables
     Base.metadata.create_all(bind=engine)
     
     # Create session
     session = TestingSessionLocal()
+    
+    # Ensure foreign keys are enabled for this session too
+    if USE_SQLITE:
+        from sqlalchemy import text
+        session.execute(text("PRAGMA foreign_keys=ON"))
+        # Verify it's enabled
+        result = session.execute(text("PRAGMA foreign_keys")).scalar()
+        assert result == 1, "Foreign keys should be enabled"
+        session.commit()
     
     try:
         yield session

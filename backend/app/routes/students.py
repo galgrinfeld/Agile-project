@@ -70,9 +70,19 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 def create_student(student: schemas.StudentCreateAuth, db: Session = Depends(get_db)):
     """Create a new student."""
     from ..auth_utils import get_password_hash
+    from sqlalchemy.exc import IntegrityError
+    
     student_data = student.model_dump()
     student_data['hashed_password'] = get_password_hash(student_data.pop('password'))
-    db_student = crud.create_student(db, student_data)
+    
+    try:
+        db_student = crud.create_student(db, student_data)
+    except IntegrityError as e:
+        db.rollback()
+        if "name" in str(e.orig).lower() or "unique" in str(e.orig).lower():
+            raise HTTPException(status_code=400, detail="User with this name already exists")
+        raise HTTPException(status_code=400, detail="Database constraint violation")
+    
     return {
         'id': db_student.id,
         'name': db_student.name,
@@ -135,6 +145,8 @@ def update_student_courses(student_id: int, enrollment: schemas.EnrollmentUpdate
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     """Delete a student."""
     db_student = crud.get_student(db, student_id)
+    if not db_student:
+        raise HTTPException(status_code=404, detail="Student not found")
     
     db.delete(db_student)
     db.commit()
